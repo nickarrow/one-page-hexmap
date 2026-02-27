@@ -1,0 +1,609 @@
+SCALE CONVENTIONS
+This game was written to be played with 32mm scale models in
+mind, which are mounted on round bases. These bases come in
+various sizes, and we recommend that you always mount
+miniatures on the bases they come with.
+Here are some rough guidelines for model and base sizes:
+• Infantry: 32mm tall on 20mm/32mm round bases
+• Large Infantry: 50mm tall on 40mm/50mm round bases
+• Bikes: 40mm tall on 60mm oval bases
+• Monsters: 70mm tall on 60mm round bases
+• Large Walkers: 100mm tall on 120mm oval bases
+• Vehicles: Various sizes and not mounted on a base
+Note that the base size that you use doesn’t matter, as long as you
+keep base sizes consistent across all models.
+
+LINE OF SIGHT
+When playing the game, line of sight is used to determine if a model
+can see another model for any purpose. Simply get down to the eye
+level of the miniature, and check if it can see the target. If the target
+is visible, then it has line of sight.
+Models can always see in all directions, regardless of where the
+miniature is actually facing, always have line of sight to themselves,
+and may always target themselves (unless stated otherwise).
+Models can’t see through solid obstacles, including the perimeter
+of other units (friendly or enemy), but they can always see through
+friendly models from their own unit.
+Note that players may agree to ignore unusual features (like
+decorative banners or flame effects) for line of sight.
+
+PREPARING THE BATTLEFIELD
+You are going to need a flat 6’x4’ area to play on, which is usually
+referred to as “the battlefield” or “the table”. Note that the game
+can be also played on smaller areas, as long as armies deploy at
+least 24" apart.
+Whilst we recommend playing on a table, you can of course play on
+the floor, on a bed, or wherever else you have space.
+Once you have found a space to play, you are going to have to
+place at least 15 pieces of terrain on it, though we recommend
+using 20 or more to keep things interesting. Whilst it’s always nice
+to play with great looking pieces of terrain, you can simply use
+household items such as books or cups as terrain.
+There are no specific rules on how you should place terrain, but we
+have provided some general guidelines in the terrain section of this
+book to help you get started.
+PLACING OBJECTIVES
+After the table has been prepared, you and your opponent must set
+up D3+2 objective markers on the battlefield.
+The players roll-off and the winner picks who places the first
+objective marker. Then the players alternate in placing one marker
+each outside of the deployment zones, and over 9” away from
+other markers (note that markers can’t be placed in unreachable
+positions, like impassable terrain or spots too tight to get to).
+
+DEPLOYING ARMIES
+Once the mission has been set up, the players roll-off and the
+winner must start deploying their army first.
+The winning player first chooses one long table edge to deploy on
+and then places one unit fully within 12” of their table edge.
+Once they are done, then the opposing player places one unit fully
+within 12” of the opposite table edge.
+Then the players continue alternating in placing one unit each,
+until all units have been deployed.
+
+GENERAL MOVEMENT
+Models may move and turn in any direction regardless of their
+facing, as long as no part of their bases move further than the total
+movement distance. Models may never be within 1” of models from
+other units, unless they are taking a Charge action, and may never
+move through other models or units (friendly or enemy), even if
+they are taking a Charge action.
+Note that models may also never move outside of the battlefield
+(no part of them, at any point), or be placed in physically
+impossible locations.
+
+UNIT COHERENCY
+All models in a unit must always stay within 1” of at least one other
+model, and must stay within 9” of all other models (or as close as
+possible), forming an uninterrupted chain of models in 1”
+coherency with each other.
+If a model is not in coherency with its unit at the beginning of its
+activation, then you must take an action so that the model gets
+back into coherency.
+
+PICKING TARGETS
+When shooting, a unit must pick one valid target and all models in
+the unit may shoot at it.
+If at least one model in the unit has line of sight to an enemy model,
+and has a weapon that is within range of that model, then that
+enemy is a valid target.
+WHO CAN SHOOT
+All models in a unit with line of sight to the target, and that have a
+weapon that is within range of it, may fire at it. Note that models
+may always ignore friendly models from their own unit when
+determining line of sight.
+
+
+TERRAIN
+
+TERRAIN RULES
+When setting up terrain, players must agree on what terrain type
+rules each piece of terrain follows. This will make sure that you do
+not have any arguments during your game, and that things can
+proceed smoothly.
+Each piece of terrain may count as having multiple terrain types,
+and you may also add other conditions to further customize your
+terrain rules.
+Example: A piece of Forest terrain could count both as Cover as well
+as Difficult Terrain. Additionally, you could allow units to shoot into
+and out of it freely, but not through it.
+
+OPEN TERRAIN
+Examples: Grass Fields, Dirt Roads, Streets, etc.
+Any surface that is not specifically defined as a type of terrain (like
+forests, buildings, rivers, etc.) counts as open terrain.
+Open terrain does not have any special rules, and any rules that
+affect terrain do not apply to open terrain.
+
+IMPASSABLE TERRAIN
+Examples: Mountains, Canyons, Deep Water, etc.
+Any surface that would stop models from moving through it, as well
+as gaps over 1” wide, count as impassable terrain.
+Units may not move through impassable terrain, unless they have
+any rules that allow them to ignore it. Note that units may move
+across gaps up to 1” wide as if they were flat ground, but may not
+end their move partially overhanging gaps or terrain.
+
+BLOCKING TERRAIN
+Examples: Walls, Buildings, Rocks, etc.
+Any piece of terrain that models can’t see or shoot through counts
+as blocking terrain.
+Units may not draw line of sight through blocking terrain, unless
+they have any rules that allow them to ignore it.
+
+COVER TERRAIN
+Examples: Forests, Ruins, Sandbags, etc.
+Terrain features that models can hide in or behind, or that could
+stop projectiles, count as cover terrain.
+If the majority of models in a unit are fully inside a piece of cover
+terrain or behind a sight blocker (for multi-model units), or that are
+mostly inside cover terrain or behind sight blockers (for singlemodel units), they get +1 to Defense rolls when blocking hits from
+shooting attacks.
+Note that since models can’t see through the perimeter of other
+units (friendly or enemy), they are sight blockers that can provide
+other units with cover.
+
+DIFFICULT TERRAIN
+Examples: Woods, Mud, Rivers, etc.
+Terrain features that hinder a model’s movement, or force them to
+slow down, count as difficult terrain.
+If any model in a unit moves in or through difficult terrain at any
+point of its move, then all models in the unit may not move more
+than 6” for that movement.
+
+DANGEROUS TERRAIN
+Examples: Quicksand, Razor Wire, Mine Fields, etc.
+Terrain features that could harm models, or outright kill them,
+count as dangerous terrain.
+If a model moves in or through dangerous terrain, or is activated in
+it, then it must take a dangerous terrain test.
+To take a dangerous terrain test, roll one die (or as many dice as
+the model’s Tough value), and if the result is 1, then the unit takes
+one automatic wound.
+
+ELEVATED TERRAIN
+Examples: Hills, Rooftops, Cliffs, etc.
+Terrain features that are over 3” tall count as elevated terrain, and
+are impassable, but any terrain piece that is up to 3” tall may be
+climbed as part of a unit’s move (units may not end their move
+mid-climb). If not all models in a unit can fit on elevation, then a
+coherency of 3” is allowed to models at different elevation.
+Note that short terrain up to 1” tall may be ignored for the
+purposes of movement (instead of having to climb up 1” and down
+1” to cross it).
+
+TERRAIN SETUP GUIDELINES
+Whilst there are no specific rules as to how terrain should be
+placed, here are some guidelines on how to handle terrain to have
+a balanced match.
+Here are all the things you should consider:
+• Size of your terrain
+• Rules for each terrain
+• Number of pieces
+• How to place it
+
+TERRAIN OVERVIEW
+Whilst there is no limit to the size of terrain that you can use for
+your games, we have a few recommendations for you:
+• Small pieces of scatter terrain, like barrels, boxes,
+barricades, etc. should be somewhere between 1”x1” and
+3”x3” in size.
+• Large terrain features, like buildings, forests, lakes, etc.
+should be somewhere between 4”x4” and 8”x8” in size,
+but can be as large as 12”x12”.
+For each terrain feature you’ll also have to define some basic rules
+for how it works in the game. Most terrain features will probably
+have a single type, but you can combine multiple types together,
+and even add extra conditions to them.
+
+Here are some guidelines for common terrain types:
+• Barricades - Cover
+• Buildings - Impassable + Blocking
+• Fields - Difficult + Cover
+• Forests - Difficult + Cover + Units can see into and out of forests, but not through them
+• Hills - Cover + Difficult when moving up + Units on top may ignore one unit/terrain for line of sight
+• Lakes - Difficult (if shallow) or Impassable (if deep)
+• Lava - Dangerous
+• Mountains - Impassable + Blocking
+• Rivers - Dangerous when using rush/charge
+• Rubble - Difficult
+• Ruins - Cover + Dangerous when using rush/charge
+• Swamps - Difficult
+
+Note that whilst all of the terrain we mentioned so far is what you’ll
+need for gameplay purposes, it’s also always good to have
+elements of decorative terrain that have no effect on the game, but
+that help make your table look better.
+These could be elements such as patches of grass, shallow water
+puddles, scattered gravel, chain-link fences, street signs, and other
+things that make sense for your table.
+
+TERRAIN PLACEMENT
+When setting up terrain, you should use at least 15-20 pieces of
+terrain, although using more can be more interesting.
+A simple way to make sure that you’re using enough terrain is to
+take as many pieces of terrain as you need to fully cover at least
+25% of the table, and then spread them out.
+It’s also good to keep a balance of different terrain types, so that
+units with different weapons and special rules can use them
+effectively in various situations.
+
+Here are some basic terrain type recommendations:
+• At least 50% should block line of sight
+• At least 33% should provide cover
+• At least 33% should be difficult terrain
+• Each player should pick 1 piece to be dangerous
+
+Example: If you’re playing with 12 pieces of terrain, at least 6 should
+block line of sight, 4 should provide cover, 4 should be difficult
+terrain, and 2 should be dangerous terrain.
+Once you have chosen which terrain pieces you are going to use,
+you can either have one player set up all of the terrain, or have both
+players set up terrain together.
+
+To make sure neither player has an advantage, you can roll-off, and
+then then alternate in placing one terrain piece each, starting with
+the player that won the roll-off.
+
+There are no specific rules on how you should place terrain, so we
+recommend trying to set up the table in such a way that it will
+provide a balanced playing field for everyone involved.
+
+Ideally you want to place enough blocking terrain that you can’t
+draw clear line of sight from edge to edge across the table, as well
+as make sure that there are no gaps bigger than 12” between
+different terrain pieces. If you are playing with large units, we also
+recommend making sure that there are gaps of at least 6” between
+terrain, so they can fit through.
+
+
+ADVANCED TERRAIN - TERRAIN PLACEMENT
+TERRAIN PLACEMENT STYLES
+When preparing the game, you can either pick one of the
+placement styles below, or select it randomly.
+To select a random placement style, roll one die:
+1. Random
+2. Alternating (Free)
+3. Alternating (Restricted)
+4. Full Table
+5. Two Halves
+6. Six Squares
+Once you have decided what placement style to use, pick 15+
+pieces of terrain that you want to play with, and then follow the
+instructions of the selected placement style.
+1. RANDOM
+Divide the table into six 2’x2’ sections.
+For each piece of terrain, roll one die to place it at the center of one
+random section, and then move it 2D6” toward the center of
+another randomly selected section, stopping to be at least 6” away
+from other pieces of terrain.
+If it’s impossible to place the terrain piece, simply remove it.
+2. ALTERNATING (FREE)
+Players roll-off, and then alternate in placing one terrain piece
+each, starting with the player that won.
+Terrain pieces must be placed at least 6” away from each other,
+and if it’s impossible to place them they are removed.
+3. ALTERNATING (RESTRICTED)
+Roll one die to select a random restriction, and then follow the
+same rules as the “Alternating (Free)” placement style:
+1. No pieces of terrain may be placed within 12” of the
+center of the table.
+2. No pieces of terrain may be placed within 12” of the edge
+of the table.
+3. Place the first piece of terrain at the center of the table.
+The rest must be placed more than 12” away from that
+piece of terrain.
+4. Place the first piece at the center of the table, and the rest
+must be placed within 9” of another piece of terrain that
+was already placed.
+5. Place the first 4 pieces each within 12” of a different table
+corner. The rest can be placed anywhere.
+6. Place the first 4 pieces each in a different table quarter.
+The rest can be placed anywhere.
+4. FULL TABLE
+Players roll-off, and the winner places all pieces of terrain on the
+table, at least 6” away from each other and the table edge.
+Then the player that lost the roll-off gets to pick which side they
+wants to deploy on.
+5. TWO HALVES
+Players roll-off, and the winner may draw a straight line from one
+corner of the battlefield to the opposite, and pick which table half
+they place terrain on.
+Then the players alternate in placing one piece of terrain each on
+their own table half, at least 6” away from other pieces of terrain
+and the table edge.
+6. SIX SQUARES
+Divide the table into six 2’x2’ sections.
+Players roll-off, and then alternate in placing one terrain piece each
+in a random section, starting with the player that won.
+Terrain pieces must be placed at least 6” away from each other,
+and if it’s impossible to place them they are removed.
+
+
+ADVANCED TERRAIN - TERRAIN GENERATOR
+TERRAIN GENERATOR
+If you’re looking for more variety in your table setups, you can use
+one of the following terrain generators, to get themed terrain that
+fits a thematic battlefield.
+There are 4 planet types that you can pick from:
+• Generic Planets
+• Hospitable Planets
+• Wasteland Planets
+• Death Planets
+Whilst there is no limit to the size of terrain that you can use for
+your games, we have a few recommendations for you:
+• Small pieces of scatter terrain, like barrels, boxes,
+barricades, etc. should be somewhere between 1”x1” and
+3”x3” in size.
+• Large terrain features, like buildings, forests, lakes, etc.
+should be somewhere between 4”x4” and 8”x8” in size,
+but can be as large as 12”x12”.
+Note that all of the terrain generated in this section can be used in
+combination with different terrain placement styles for a more
+varied table setup.
+GENERIC PLANETS
+The Generic Planet setup allows you to generate terrain without
+having to worry about using thematic pieces.
+To generate balanced terrain, follow these steps:
+• First, take 9 pieces of terrain:
+o 2 Barricades
+o 2 Large Forests / Large Fields
+o 5 Large Sight Blockers
+• Then, take 4D3 more pieces of terrain, determining their
+type by rolling 2D6 for each:
+o 2-3 = Large Hill
+o 4 = Large Ruins
+o 5 = Large Field
+o 6-8 = Barricade
+o 9 = Large Forest
+o 10 = Large Sight Blocker
+o 11-12 = Large Lake
+After terrain has been placed, roll-off to see who goes first, and
+then players alternate in picking D3 pieces of terrain each, which
+count as Dangerous Terrain.
+
+HOSPITABLE PLANETS
+Many planets are pleasant and liveable, sustaining wildlife and
+civilization alike, with relatively intact natural landscapes.
+To generate hospitable terrain, follow these steps:
+• First, take 9 pieces of terrain:
+o 2 Walls or Fences
+o 2 Hills or Plantations
+o 5 Forests or Large Buildings
+• Then, take 4D3 more pieces of terrain, determining their
+type by rolling 2D6 for each (see results below).
+2 = Deep River or Lake
+Counts as Impassable terrain.
+3 = Shallow River or Stream
+Counts as Difficult terrain. Optionally, you may add one 3”-6” wide
+Bridge for every full 24” of Shallow River or Stream.
+4 = Tall Crops Field
+Counts as Difficult and Cover terrain.
+5 = Ruins or Debris
+Counts as Cover terrain, as well as Dangerous terrain when using
+Rush/Charge actions.
+6 = Forest or Plantation
+Counts as Difficult and Cover terrain, and units may see into and
+out of them, but not through.
+7 = Hill, Forest, or Field
+See other entries for specific rules.
+8 = Hill
+Counts as Cover terrain, and units on top may ignore one
+unit/terrain for line of sight.
+9 = Wall or Fence
+Counts as Cover, as well as Difficult terrain when moving through it.
+10 = One Large Building
+Counts as Impassable and Blocking terrain.
+11 = Group of Small Buildings
+Count as Impassable and Blocking terrain.
+12 = Steep Hill
+Counts as Cover terrain, as well as Difficult terrain for units moving
+up, and units on top may ignore one unit/terrain for line of sight.
+
+ADVANCED TERRAIN - TERRAIN GENERATOR
+WASTELAND PLANET
+Either naturally barren or devastated by years of industry or war,
+some planets are little more than wastes of dirt and ash.
+To generate wasteland terrain, follow these steps:
+• First, take 9 pieces of terrain:
+o 2 Groups of Small Dunes
+o 2 Large Rocks / Craters
+o 5 Large Buildings / Toxic Smog
+• Then, take 4D3 more pieces of terrain, determining their
+type by rolling 2D6 for each (see results below).
+2 = Toxic River
+Counts as Difficult and Dangerous terrain. Optionally, you may add
+one 3”-6” wide Bridge for every full 24” of Toxic River.
+3 = Sludge Stream or Canal
+Counts as Dangerous terrain. Optionally, you may add one 3”-6”
+wide Bridge for every full 24” of Toxic River.
+4 = Sludge Field
+Counts as Difficult terrain.
+5 = Ruins or Debris
+Counts as Cover terrain, as well as Dangerous terrain when using
+Rush/Charge actions.
+6 = Large Rock or Two to Three Small Rocks
+Counts as Impassable and Blocking terrain.
+7 = Group of Small Dunes
+Counts as Cover terrain, and units on top may ignore one
+unit/terrain for line of sight.
+8 = Crater
+Counts as Cover terrain.
+9 = Toxic Smog
+Counts as Cover and Dangerous terrain, and units may see into and
+out of it, but not through.
+10 = Large Building
+Counts as Impassable and Blocking terrain.
+11 = Mine Field
+Counts as Dangerous terrain.
+12 = Group of Small Buildings
+Count as Impassable and Blocking terrain.
+
+DEATH PLANET
+Some of the most dangerous planets in the universe, varying from
+deadly jungles, to burning volcanoes, to icy mountains.
+To generate death terrain, follow these steps:
+• First, take 9 pieces of terrain:
+o 2 Overgrown Ruins
+o 2 Deadly Vegetation / Hills
+o 5 Dense Vegetation / Steep Hills
+• Then, take 4D3 more pieces of terrain, determining their
+type by rolling 2D6 for each (see results below).
+2 = Death Marsh
+Counts as Difficult and Dangerous terrain.
+3 = Crumbly Rock
+Counts as Difficult terrain.
+4 = Overgrown Ruins
+Counts as Difficult and Cover terrain.
+5 = Deadly Vegetation
+Counts as Difficult, Cover, and Dangerous terrain.
+6 = Dense Vegetation
+Counts as Difficult and Cover terrain, and units may see into and
+out of them, but not through.
+7 = Dense Vegetation or Hill
+See other entries for specific rules.
+8 = Hill
+Counts as Cover terrain, and units on top may ignore one
+unit/terrain for line of sight.
+9 = Group of Small Buildings
+Count as Impassable and Blocking terrain.
+10 = Steep Hill
+Counts as Cover terrain, as well as Difficult terrain for units moving
+up, and units on top may ignore one unit/terrain for line of sight.
+11 = Beast Lair
+Counts as Dangerous terrain.
+12 = Quicksand
+Counts as Dangerous terrain when using Rush/Charge actions.
+
+
+ADVANCED TERRAIN - ARMY TERRAIN
+USING ARMY TERRAIN
+Players can choose to play using army terrain, which allows each
+army to place a special piece of terrain that affects the game in
+different interesting ways.
+Before the game begins, each army either picks one army terrain,
+or rolls to get one randomly.
+To get army terrain randomly, first, roll one die to get one type of
+Battle Terrain:
+1. Army Banner
+2. Battle Forge
+3. Defensive Barrier
+4. Icon of War
+5. Protective Dome
+6. Watch Tower
+Then, roll one die to get one type of Relic Terrain:
+1. Arcane Pillars
+2. Enchanted Shrine
+3. Faction Relic
+4. Healing Well
+5. Magic Armory
+6. Twin Jumpgates
+Finally, secretly pick one of the two results to be your army terrain
+for the match.
+Army terrain pieces should be somewhere between 2”x2” and 4”x4”
+in size, and somewhere between 2” and 4” tall. Each piece counts
+are impassable and blocking terrain.
+During deployment, army terrain pieces are placed as if they were a
+regular unit, but they can’t be placed within 6” of any objective
+marker, or the table edges.
+BATTLE TERRAIN
+Army Banner
+Whenever a friendly unit activates within 6” of this army terrain, it
+gets +2” when using Advance actions, and +4” when using
+Rush/Charge actions.
+Battle Forge
+Whenever a friendly unit activates within 6” of this army terrain, it
+gets +1 to hit rolls when shooting.
+Defensive Barrier
+The area within 6” of this faction terrain counts as Difficult terrain
+for enemy units.
+Icon of War
+Whenever a friendly unit activates within 12” of this army terrain, it
+gets +1 to hit rolls in melee when charging.
+Protective Dome
+The area within 6” of this faction terrain counts as Cover terrain for
+friendly units.
+Watch Tower
+The area within 6” of this faction terrain counts as Dangerous
+terrain for enemy units.
+RELIC TERRAIN
+Arcane Pillars
+When placing this army terrain, place two copies of it within 12” of
+each other (instead of placing just one).
+Draw a straight line from one copy of this army terrain to the other.
+Whenever an enemy unit ends its activation with at least one model
+touching the line, the unit takes 2D3 wounds.
+Enchanted Shrine
+Whenever a friendly Caster activates within 6” of this army terrain,
+it gets 1 spell token.
+Faction Relic
+Whenever a friendly unit within 12” of this army terrain takes a
+morale test, it gets +1 to its morale test roll.
+Healing Well
+Whenever a friendly unit within 6” of this army terrain is activated,
+you may remove D3 wounds from it.
+Magic Armory
+Whenever a friendly unit within 6” of this army terrain takes hits, it
+gets +1 to its defense rolls.
+Twin Jumpgates
+When placing this army terrain, place two copies of it within 24” of
+each other (instead of placing just one).
+Whenever a friendly unit ends its activation within 3” of one of the
+copies of this army terrain, you may place it anywhere within 3” of
+the other copy of this army terrain.
+
+ADVANCED TERRAIN - SOLID BUILDINGS
+OPEN VS SOLID BUILDINGS
+To play with these rules, you first need to understand the
+difference between open and solid buildings:
+• Open buildings have one or more openings which can be
+used to place models inside.
+• Solid buildings consist of one solid block which cannot be
+opened or reached into.
+Usually, solid buildings would be treated as a piece of sight
+blocking and impassable terrain, however with these rules your
+units will be able to enter and defend them.
+USING SOLID BUILDINGS
+Solid buildings may hold up to X models inside of them, which must
+be from the same army.
+Units may enter by using any move action into contact with the
+building, and units inside may exit by using any move action, but
+must stay within 6” of it, however units may not both enter and exit
+a building as part of the same activation.
+Since buildings come in different sizes, you have to decide how
+many models can be inside by yourself, however here are some
+guidelines that you can use:
+• Small Sheds: 6 models
+• Medium Houses: 11 models
+• Large Fortifications: 21 models
+SOLID BUILDINGS & COMBAT
+Units may shoot into and out of any side of a solid building that has
+some sort of firing port (doors, windows, etc.), and you may choose
+which firing port to shoot from.
+Units inside of solid buildings always count as being in Cover,
+regardless of what material the building is made of.
+When charging units inside a building, only one unit inside of it is
+targeted, and the defender may choose which. To charge the
+building, simply move models in base contact with it.
+BUILDING DESTRUCTION
+Optionally, solid buildings may be targeted for all types of attacks
+as if they were any other unit.
+All buildings count as having Defense 2+ and a Tough(X) value,
+which you are going to set yourself, however here are some
+guidelines that you can use:
+• Wood Buildings: Tough(6)
+• Brick Buildings: Tough(12)
+• Concrete Buildings: Tough(18)
+If a unit is inside of a building when it is destroyed, then it must
+take a Dangerous Terrain test, is immediately Shaken, and
+surviving models must be placed within 6” of the building before it
+is removed.
+COLLATERAL DAMAGE
+Optionally, solid buildings may also take collateral damage when
+units inside of them are attacked.
+Whenever a unit targets an enemy inside of a building with a
+ranged attack, roll one die for every attack that misses. On a 4+ that
+attack hits the building instead, which is resolved after all regular
+hits have been resolved.
+Note that failing to cast a spell targeting a unit inside of a building
+does not count as a missed attack.

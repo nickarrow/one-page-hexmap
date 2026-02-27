@@ -2,79 +2,103 @@
 
 ## Project Overview
 
-A web-based tool for generating, visualizing, and printing One Page Rules (OPR)–compatible hex battle maps. Maps are procedurally generated, monochrome, print-friendly, and designed to fit on a single US Letter (or A4) page with physical unit tokens.
+A web-based tool for generating, visualizing, and printing One Page Rules (OPR)–compatible hex battle maps. Maps are procedurally generated following OPR terrain placement guidelines, monochrome, print-friendly, and designed to fit on a single US Letter (or A4) page for use with physical unit tokens.
+
+This project brings the classic hex-and-counter wargame aesthetic to OPR, replacing tape measures with hex counting while maintaining full compatibility with OPR rules.
 
 ## Primary Audience
 
-OPR tabletop wargamers who need to rapidly produce balanced, valid battle maps without manual drawing.
+OPR tabletop wargamers who want to:
+- Rapidly generate balanced, valid battle maps without manual drawing
+- Play OPR using hex-based movement instead of tape measures
+- Print single-page maps for portable or quick-setup games
 
 ## Core Value Proposition
 
-- Procedurally generated hex maps aligned with OPR terrain and battle map designs
-- Print-ready output on a single page
-- Clear visual representation of terrain types and elevations
-- Designed for 7mm diameter unit tokens
-- Monochrome styling optimized for printing (inspired by classic hex-and-counter wargames)
+- Procedurally generated hex maps following OPR terrain placement guidelines
+- 1:1 mapping of OPR terrain rules to hex representations
+- Print-ready output on a single page (US Letter or A4)
+- Monochrome styling optimized for printing (classic hex-and-counter aesthetic)
 - Shareable maps via seed-based regeneration
+- Designed for 7mm diameter unit tokens
 
 ---
 
-## Local Reference Materials
+## Scale & Distance System
 
-The following resources have been cloned locally for reference during development:
+### The Core Concept: 1 Hex = 1 Inch
 
-### oi.hexmap.js (Cloned)
+This map system represents a **half-scale OPR table** (36" × 24"). Each hex equals 1 inch on that half-scale table.
 
-**Location:** `oi.hexmap.js/`
+| Full-Scale OPR | Half-Scale OPR | Hex Equivalent |
+|----------------|----------------|----------------|
+| 72" × 48" table | 36" × 24" table | 36 × 24 hex grid |
+| 12" move | 6" move | 6 hexes |
+| 24" range | 12" range | 12 hexes |
+| 12" deployment | 6" deployment | 6 hexes from edge |
 
-The core hex rendering library we're building on top of.
+**How to play:**
+1. Use half-distance rules as normal for OPR half-scale play
+2. Count hexes instead of measuring with a ruler
+3. A unit with Move 12" on their card → apply half-distance (6") → move up to 6 hexes
 
-```
-oi.hexmap.js/
-├── dist/
-│   ├── oi.hexmap.js          # Full source (26.3KB) - READ THIS for API understanding
-│   └── oi.hexmap.min.js      # Minified (16.1KB) - COPY THIS to public/lib/
-├── index.html                # Documentation & examples - OPEN IN BROWSER for demos
-├── resources/
-│   ├── constituencies.hexjson        # Example HexJSON layout
-│   └── uk-constituencies-2023.hexjson # Example with boundaries
-├── LICENSE                   # MIT License
-└── README.md                 # Changelog
-```
+This eliminates measuring disputes and speeds up play while maintaining full OPR rules compatibility.
 
-**Key files to reference:**
-- `dist/oi.hexmap.js` — Full annotated source code, useful for understanding the API
-- `index.html` — Open in browser to see all examples including London 1895
-- `resources/*.hexjson` — Example HexJSON files showing format and boundaries
+### Hex Movement Rules
 
-### Related Projects (Not Cloned)
+**Adjacent hexes:** A hex has 6 neighbors. Moving to any adjacent hex costs 1 hex of movement.
 
-These exist online but weren't cloned because they're for geographic cartograms, not procedural game maps:
+**Diagonal movement:** In a hex grid, there is no "diagonal" — all adjacent hexes are equidistant. This is one of the advantages of hex grids over square grids.
 
-| Project | URL | Why Not Cloned |
-|---------|-----|----------------|
-| odileeds/hexmaps | https://github.com/odileeds/hexmaps | Pre-made geographic layouts (UK, US), not game grids |
-| Hex map builder | https://odileeds.github.io/hexmaps/builder.html | CSV import tool, not relevant to procedural generation |
-| Hex map editor | https://odileeds.github.io/hexmaps/editor/ | Manual positioning UI — could reference later for click-to-edit feature |
+**Movement example:** A unit with Move 12" (6" half-scale) can move up to 6 hexes in any path through adjacent hexes.
 
-**Note:** If we add a "click to edit hex terrain" feature in the future, the editor UI at `odileeds.github.io/hexmaps/editor/` would be a good reference for interaction patterns.
+**Difficult terrain:** If any part of a unit's movement passes through difficult terrain, the entire unit's movement is limited to 6" (3 hexes at half-scale) for that activation. This applies even if the unit starts in difficult terrain.
 
----
+### Unit Coherency in Hexes
 
-## Grid Specifications
+OPR requires models to stay within 1" of at least one other model and within 9" of all models.
 
-### Design Constraints
+For hex play:
+- **1" coherency** = models must be in the same hex or adjacent hexes
+- **9" coherency** = models must be within 9 hexes of each other
 
-| Constraint | Value | Rationale |
-|------------|-------|-----------|
-| Grid size | 36 × 24 hexes | Mirrors OPR's 72" × 48" table at half scale |
-| Token diameter | 7mm | Physical tokens already purchased |
-| Page size | US Letter (primary), A4 (secondary) | Common printer paper |
+Single-model units ignore coherency. Multi-model units should keep models in a connected cluster of hexes.
+
+### Grid Specifications
+
+| Specification | Value | Rationale |
+|---------------|-------|-----------|
+| Grid size | 36 × 24 hexes | Half-scale OPR table (36" × 24") |
 | Hex orientation | Flat-topped (odd-q layout) | Best fit for portrait page |
 | Page orientation | Portrait | Maximizes hex size for 36×24 grid |
+| Token diameter | 7mm | Physical tokens fit within hex interior |
 | Margins | 0.20" (5.08mm) | Minimal safe margin for most printers |
 
-### Hex Geometry Math
+### Hex Coordinate System (odd-q)
+
+The grid uses **odd-q offset coordinates**, a standard hex coordinate system for flat-topped hexes:
+
+```
+  Column:  0     1     2     3     4     5
+        _____       _____       _____
+       /     \_____/     \_____/     \        Row 0
+       \_____/     \_____/     \_____/
+       /     \_____/     \_____/     \        Row 1
+       \_____/     \_____/     \_____/
+       /     \_____/     \_____/     \        Row 2
+       \_____/     \_____/     \_____/
+       
+  Odd columns (1, 3, 5...) are shifted DOWN by half a hex height.
+```
+
+- **q** = column (0–35, left to right)
+- **r** = row (0–23, top to bottom)
+- **Odd columns** (1, 3, 5...) are offset downward by half a hex height
+- **Display labels** use letter+number format: Column A=0, B=1, etc. Row 1=0, 2=1, etc.
+
+Example: Hex at q=2, r=5 displays as "C6"
+
+### Hex Geometry
 
 **Flat-topped hex relationships:**
 - Hex width (flat-to-flat) = `w`
@@ -82,361 +106,396 @@ These exist online but weren't cloned because they're for geographic cartograms,
 - Horizontal spacing = `w × 0.75` (hexes interlock)
 - Vertical spacing = hex height
 
-**Grid dimensions formula:**
-- Total width = `w + (columns - 1) × 0.75w` = `w × (1 + 0.75 × (columns - 1))`
-- Total height = `rows × hex_height` = `rows × w × 1.1547`
+**Calculated hex sizes:**
 
-For 36 columns: `total_width = 27.25w`
-For 24 rows: `total_height = 27.71w`
+| Paper Size | Hex Width | Hex Height | 7mm Token Fit |
+|------------|-----------|------------|---------------|
+| US Letter | 7.55mm | 8.72mm | ✓ 0.05mm clearance |
+| A4 | 7.33mm | 8.47mm | ✓ Snug but works |
 
-### Calculated Hex Sizes
+---
 
-**US Letter Portrait (279.4mm × 215.9mm):**
+## OPR Terrain System
+
+OPR terrain is **combinatorial** — a single terrain feature can have multiple properties. For example, a Forest is both Difficult terrain AND Cover terrain AND has special line-of-sight rules.
+
+### Terrain Properties (Per OPR Rules)
+
+| Property | OPR Game Effect | Hex Representation |
+|----------|-----------------|-------------------|
+| **Open** | No special rules | Empty/white fill |
+| **Cover** | +1 Defense when majority of unit is inside/behind | Indicated in legend |
+| **Difficult** | Models may not move more than 6" (3" half-scale = 3 hexes) | Indicated in legend |
+| **Dangerous** | Roll dice equal to Tough value when entering/activated in; 1 = one wound | Indicated in legend |
+| **Impassable** | Cannot move through | Indicated in legend |
+| **Blocking** | Cannot draw line of sight through | Solid fill pattern |
+| **Elevated** | Special LOS rules; may require climbing | Elevation number in hex |
+
+### Line of Sight (LOS) System
+
+OPR has nuanced LOS rules. For hex map play, we simplify to three categories:
+
+| LOS Type | Symbol | Meaning | Examples |
+|----------|--------|---------|----------|
+| **Clear** | ○ | Can see through freely | Open, Rubble, Crater |
+| **Partial** | ◧ | Can see into/out of, but not through | Forest, Field, Hill |
+| **Blocking** | ⬛ | Cannot see through at all | Buildings, Rocks, Mountains |
+
+**How to use:** Draw a straight line from the center of the attacking unit's hex to the center of the target's hex. Check what terrain hexes the line crosses:
+
+1. **Crosses Blocking terrain** → No LOS (attack not possible)
+2. **Crosses Partial terrain** → LOS exists only if attacker OR target is inside that partial terrain
+3. **Crosses only Clear terrain** → Full LOS
+
+**Cover from LOS:** Remember that other units (friendly or enemy) also block LOS and can provide cover. If the line crosses a hex containing another unit, that unit blocks sight.
+
+### Cover Mechanics in Hex Play
+
+OPR grants +1 Defense when "majority of models are fully inside cover terrain or behind a sight blocker."
+
+**For hex play:**
+- **Single-model unit:** If the model's hex is Cover terrain, it gets +1 Defense
+- **Multi-model unit:** If more than half the models are in Cover terrain hexes, the unit gets +1 Defense
+- **Behind sight blocker:** If the LOS line from attacker to target crosses a Blocking hex or another unit, the target gets +1 Defense
+
+### Elevation System
+
+Each elevation level represents **2 inches** of height.
+
+| Level | Height | Examples |
+|-------|--------|----------|
+| +3 | 6" | Tall tower, cliff top |
+| +2 | 4" | Rooftop, high ground |
+| +1 | 2" | Low hill, raised platform |
+| 0 | Ground | Default terrain level |
+| -1 | -2" | Shallow trench, depression |
+| -2 | -4" | Deep canyon, crater |
+
+**Climbing rules (per OPR):**
+- **±1 level difference:** Climbable. Costs +1 hex of movement (unit may not end mid-climb).
+- **±2 or more level difference:** Impassable. Cannot climb directly; must find a path through intermediate elevations.
+
+This maps to OPR's rule: terrain up to 3" can be climbed, over 3" is impassable.
+
+**Elevation and LOS:**
+- Units on elevated terrain may ignore one unit/terrain for line of sight (per OPR Hill rules)
+- Higher elevation provides advantage when shooting down
+
+**Terrain on Elevation:**
+A hex can have both a terrain type AND an elevation. For example, a Forest hex at elevation +1 represents trees on a hill. The hex has all properties of both:
+- Forest properties: Difficult, Cover, Partial LOS
+- Elevation +1: Climbing rules apply, LOS advantage
+
+The generator may place terrain clusters on varied elevations to create more interesting maps.
+
+---
+
+## Terrain Presets
+
+Rather than exposing raw terrain properties, the generator uses **presets** — named terrain types that bundle the correct OPR properties together.
+
+### MVP Terrain Presets
+
+| Preset | OPR Properties | LOS | Pattern Description |
+|--------|---------------|-----|---------------------|
+| **Open** | None | Clear ○ | Empty white fill |
+| **Forest** | Difficult + Cover | Partial ◧ | Organic scattered dots (tree canopy) |
+| **Ruins** | Cover + Dangerous* | Clear ○ | Broken diagonal hatch lines |
+| **Hill** | Cover + Elevated | Partial ◧ | Concentric contour arcs |
+| **Building** | Impassable + Blocking | Blocking ⬛ | Dense solid fill or tight grid |
+| **Water (Shallow)** | Difficult | Clear ○ | Horizontal wavy lines |
+| **Water (Deep)** | Impassable | Clear ○ | Dense horizontal wavy lines |
+| **Barricade** | Cover + Difficult | Clear ○ | Short perpendicular dashes |
+| **Rubble** | Difficult | Clear ○ | Random scattered small shapes |
+| **Dangerous** | Dangerous | Clear ○ | Bold X or hazard pattern |
+
+*Ruins: Dangerous only when using Rush/Charge actions (noted in legend)
+
+### Additional Terrain Presets (Extended)
+
+These presets cover additional OPR terrain types for more variety:
+
+| Preset | OPR Properties | LOS | Pattern Description |
+|--------|---------------|-----|---------------------|
+| **Field** | Difficult + Cover | Partial ◧ | Vertical line hatching (crops) |
+| **Steep Hill** | Cover + Elevated + Difficult* | Partial ◧ | Dense contour arcs |
+| **Rocks** | Impassable + Blocking | Blocking ⬛ | Irregular solid shapes |
+| **Crater** | Cover | Clear ○ | Concentric broken circles |
+| **Swamp** | Difficult | Clear ○ | Wavy lines with dots |
+
+*Steep Hill: Difficult only when moving upward (noted in legend)
+
+### Multi-Hex Terrain Clusters
+
+In OPR, terrain pieces have physical size. For hex maps, terrain is represented as **clusters of adjacent hexes** sharing the same terrain type.
+
+**Terrain cluster size guidelines (per OPR):**
+
+| OPR Size | Physical Size | Hex Cluster Size |
+|----------|---------------|------------------|
+| Small/Scatter | 1"–3" | 1–3 hexes |
+| Medium | 4"–6" | 4–6 hexes |
+| Large | 6"–8" | 6–8 hexes |
+| Very Large | 8"–12" | 8–12 hexes |
+
+The generator creates terrain as clusters, not individual hexes. A "Forest" might be a 5-hex cluster, while "Barricades" might be 2-hex lines.
+
+**Cluster shapes:**
+- **Organic terrain** (Forest, Swamp, Field): Irregular blob shapes
+- **Man-made terrain** (Building, Barricade, Ruins): Rectangular or linear shapes
+- **Natural features** (Hill, Crater, Rocks): Roughly circular or oval
+
+### Terrain Preset Data Structure
+
+```typescript
+interface TerrainPreset {
+  id: string;
+  name: string;
+  properties: {
+    cover: boolean;
+    difficult: boolean;
+    dangerous: boolean | 'rush-charge'; // true = always, 'rush-charge' = conditional
+    impassable: boolean;
+    blocking: boolean;
+  };
+  losType: 'clear' | 'partial' | 'blocking';
+  elevation?: number; // If terrain inherently has elevation (hills)
+  pattern: string; // SVG pattern ID
+  description: string; // For legend
+}
 ```
-Printable area: 205.74mm × 269.24mm (with 0.20" margins)
 
-Width constraint:  27.25w = 205.74mm → w = 7.55mm
-Height constraint: 27.71w = 269.24mm → w = 9.72mm
+### Future: Custom Presets
 
-Limiting factor: Width
-Result: w = 7.55mm hex width, 8.72mm hex height
-```
+In future versions, users will be able to:
+- Rename presets (e.g., "Forest" → "Alien Jungle")
+- Create custom presets with specific property combinations
+- Support Advanced Terrain rules (Army Terrain, Relic Terrain, etc.)
 
-**A4 Portrait (210mm × 297mm):**
-```
-Printable area: 199.84mm × 286.84mm (with 0.20" margins)
+---
 
-Width constraint:  27.25w = 199.84mm → w = 7.33mm
-Height constraint: 27.71w = 286.84mm → w = 10.35mm
+## Procedural Generation
 
-Limiting factor: Width
-Result: w = 7.33mm hex width, 8.47mm hex height
-```
+The generator follows OPR terrain placement guidelines (rulebook lines 221-258) to create balanced, playable maps.
 
-### Token Fit Analysis
+### OPR Placement Guidelines
 
-| Paper | Hex Width | Stroke Width | Interior Space | 7mm Token Fit |
-|-------|-----------|--------------|----------------|---------------|
-| US Letter | 7.55mm | 0.5mm | ~7.05mm | ✓ 0.05mm clearance |
-| A4 | 7.33mm | 0.5mm | ~6.83mm | ✓ Snug but works |
+| Guideline | Rule | Implementation |
+|-----------|------|----------------|
+| Terrain count | 15-20+ pieces | Configurable density slider |
+| Table coverage | ~25% of table | Algorithm targets coverage percentage |
+| LOS blocking | At least 50% of terrain | Weighted generation ensures mix |
+| Cover terrain | At least 33% of terrain | Weighted generation ensures mix |
+| Difficult terrain | At least 33% of terrain | Weighted generation ensures mix |
+| No edge-to-edge LOS | Can't see straight across | Algorithm validates and adjusts |
+| Max gap between terrain | 12" (6 hexes at half-scale) | Algorithm ensures no large empty zones |
+| Min gap for unit passage | 6" (3 hexes at half-scale) | Algorithm ensures pathways exist |
 
-The minimal clearance is intentional — tokens visually "fill" their hex, which is the classic hex-and-counter wargame aesthetic.
+### Generation Algorithm
+
+1. **Seed initialization** — Use provided seed or generate random seed for reproducibility
+2. **Terrain budget** — Calculate number of terrain clusters based on density setting (15–25 clusters)
+3. **Terrain mix** — Select terrain types following OPR percentage guidelines (adjustable via sliders)
+4. **Cluster generation** — For each terrain piece:
+   - Select terrain preset based on weighted mix
+   - Determine cluster size (small/medium/large based on terrain type)
+   - Generate cluster shape (organic vs geometric based on terrain type)
+5. **Placement** — Distribute clusters across grid ensuring:
+   - No gaps larger than 6 hexes without terrain
+   - No clear LOS line across entire map (edge to edge)
+   - Minimum 2-hex pathways between terrain for unit movement
+   - Clusters don't overlap (except elevation can overlay other terrain)
+6. **Elevation assignment** — Add elevation values to hills and optionally vary other terrain
+7. **Validation** — Check OPR placement rules and adjust if needed
+
+### Terrain Cluster Sizing
+
+Different terrain types have typical sizes:
+
+| Terrain Type | Typical Cluster Size | Shape |
+|--------------|---------------------|-------|
+| Forest | 4–8 hexes | Organic blob |
+| Building | 2–6 hexes | Rectangular |
+| Hill | 4–8 hexes | Oval/circular |
+| Ruins | 3–6 hexes | Irregular |
+| Barricade | 2–3 hexes | Linear |
+| Water | 4–10 hexes | Organic/linear |
+| Rubble | 2–4 hexes | Scattered |
+| Rocks | 1–3 hexes | Compact |
+| Crater | 2–4 hexes | Circular |
+| Dangerous | 2–4 hexes | Any |
+
+### User Controls
+
+| Control | Type | Purpose |
+|---------|------|---------|
+| Seed | Text input | Reproducible generation |
+| Terrain Density | Slider | 15-25 terrain pieces equivalent |
+| LOS Blocking % | Slider | Adjust blocking terrain ratio |
+| Cover % | Slider | Adjust cover terrain ratio |
+| Difficult % | Slider | Adjust difficult terrain ratio |
+| Elevation Enabled | Toggle | Add elevation numbers to terrain |
+| Preset | Dropdown | Balanced / Open Field / Dense / Custom |
+
+### Generation Presets
+
+| Preset | Description | Terrain Mix |
+|--------|-------------|-------------|
+| **Balanced** | Standard OPR recommendations | 50% blocking, 33% cover, 33% difficult |
+| **Open Field** | Sparse terrain, long sight lines | 30% blocking, 20% cover, 20% difficult |
+| **Dense Urban** | Heavy cover, limited movement | 60% blocking, 50% cover, 40% difficult |
+| **Hazardous** | Dangerous terrain emphasis | 40% blocking, 30% cover, 30% dangerous |
+
+Note: Percentages can exceed 100% total because terrain types overlap. A Forest counts toward both Cover AND Difficult percentages. The generator selects terrain presets to meet all minimum thresholds.
 
 ---
 
 ## Visual Design
 
-### Style Reference: London 1895 Hexmap
+### Design Philosophy
 
-The visual design is inspired by the [London 1895 hexmap](https://open-innovations.github.io/oi.hexmap.js/#ex4) from the British Library, recreated in the oi.hexmap.js examples. This vintage cartographic style translates well to print-friendly wargame maps.
+Inspired by classic hex-and-counter wargames and the London 1895 hexmap from oi.hexmap.js. The aesthetic prioritizes:
 
-**Key visual characteristics:**
-- Parchment/sepia background for screen preview (`#fdf4d6`)
-- Pure white background for print
-- Bold hex outlines with consistent stroke width (`3px` on screen, `0.5mm` print)
-- Hatch patterns to differentiate regions (horizontal vs vertical lines)
-- Serif typography for hex labels (Times New Roman)
-- Text shadows for legibility over patterns
-- Circular border framing the map (optional decorative element)
+- **Clarity** — Each terrain type instantly recognizable at small hex sizes
+- **Print-friendliness** — Monochrome patterns that reproduce well on any printer
+- **Elegance** — Clean, professional appearance worthy of framing
 
-**Reference implementation from oi.hexmap.js:**
+### Screen vs Print Styling
 
-```css
-/* London 1895 style - adapted for OPR battle maps */
-.map-preview {
-  font-family: "Times New Roman", serif;
-  background-color: #fdf4d6;  /* Parchment - screen only */
-  color: #656058;
-}
+| Element | Screen Preview | Print Output |
+|---------|---------------|--------------|
+| Background | Parchment (#fdf4d6) | Pure white |
+| Hex stroke | Warm gray (#656058) | Black (#000) |
+| Patterns | Warm gray tones | Pure black |
+| Typography | Times New Roman, serif | Arial, sans-serif |
 
-.hex path {
-  stroke: #656058;
-  stroke-width: 3px;
-}
+### SVG Pattern Specifications
 
-.hex-label {
-  font-weight: 700;
-  fill: #656058;
-  /* Text shadow for legibility over patterns */
-  text-shadow: 
-    2px 2px 1px #fdf4d6,
-    -2px 2px 1px #fdf4d6,
-    -2px -2px 1px #fdf4d6,
-    2px -2px 1px #fdf4d6;
-}
-
-/* Hover state - inverts colors */
-.hex.hover path {
-  transform: scale(1.1);
-  stroke: black;
-}
-
-.hex.hover .hex-label {
-  text-shadow: none;
-  fill: #fdf4d6;
-}
-```
-
-**Pattern definitions from London 1895 example:**
-
-```javascript
-// Vertical and horizontal line patterns used in the original
-patterns: [
-  `<pattern id="verticalHatch" patternUnits="userSpaceOnUse" width="8" height="8">
-    <path d="M0,0 l0,8 M4,0 l0,8" style="stroke:#656058;stroke-width:8;opacity:0.3;" />
-  </pattern>`,
-  `<pattern id="horizontalHatch" patternUnits="userSpaceOnUse" width="8" height="8">
-    <path d="M0,0 l8,0 M0,4 l8,0" style="stroke:#656058;stroke-width:8;opacity:0.3;" />
-  </pattern>`
-]
-```
-
-**Applying patterns via CSS classes:**
-
-```css
-/* Each hex gets a class, pattern applied via CSS */
-.data-layer .hex path {
-  fill: #fdf4d6;  /* Base fill */
-}
-
-.data-layer .terrain-cover path {
-  fill: url(#pattern-cover);
-}
-
-.data-layer .terrain-difficult path {
-  fill: url(#pattern-difficult);
-}
-```
-
-**Label formatting with multi-line support:**
-
-```javascript
-// Custom label formatter from London 1895 example
-label: {
-  show: true,
-  format: function(txt, attr) {
-    let tspans = '';
-    // Split label by <br> tags for multi-line
-    const lines = attr.hex.label ? attr.hex.label.split(/<br ?\/?>/): [txt];
-    const lineHeight = attr['font-size'] * 1.5;
-    
-    for (let i = 0; i < lines.length; i++) {
-      const yOffset = (i - lines.length / 2 + 0.5) * lineHeight;
-      tspans += `<tspan class="name" y="${yOffset.toFixed(1)}" x="0">${lines[i]}</tspan>`;
-    }
-    return tspans;
-  }
-}
-```
-
-### Adaptation for OPR Battle Maps
-
-We adapt the London 1895 aesthetic for wargaming:
-
-| London 1895 | OPR Battle Map |
-|-------------|----------------|
-| Horizontal/vertical hatches for regions | Diagonal/dot/cross hatches for terrain types |
-| Place names as labels | Coordinate labels + elevation |
-| Decorative circular border | Clean rectangular print area |
-| Sepia color scheme | Monochrome for printing |
-| Interactive hover effects | Print-focused, minimal interactivity |
-
-### Terrain Types (OPR Aligned)
-
-| Terrain | OPR Game Effect | Visual Pattern | CSS Class | Pattern Density |
-|---------|-----------------|----------------|-----------|-----------------|
-| Open | No special effect | White fill, no pattern | `.terrain-open` | None |
-| Cover | +1 Defense when targeted | Light diagonal hatch (45°) | `.terrain-cover` | Light (30% opacity) |
-| Difficult | Half movement speed | Sparse dot grid | `.terrain-difficult` | Medium spacing |
-| Impassable | Cannot enter | Dense diagonal hatch | `.terrain-impassable` | Heavy (70% opacity) |
-| Dangerous | Roll for damage when entering | Cross hatch (X pattern) | `.terrain-dangerous` | Medium, distinctive |
-
-**Pattern design principles:**
-- Patterns must be visually distinct at small hex sizes (7.5mm)
-- Density increases with terrain severity (Open → Impassable)
-- Cross hatch reserved for Dangerous to signal "caution"
-- All patterns use single color (#333) for clean monochrome printing
-
-### Elevation/Depth Labels
-
-- Numeric label inside hex: `+1`, `+2`, `-1`, `-2`, etc.
-- Displayed below coordinate label (if both enabled)
-- Elevation `0` is not displayed (implicit ground level)
-- Optional toggle in UI
-- Font size scales with hex size to remain legible
-
-**Elevation in OPR:**
-- Higher elevation = advantage when shooting down
-- Lower elevation = disadvantage when shooting up
-- Typical range: -2 (deep depression) to +3 (high ground)
-
-### SVG Pattern Definitions
-
-These patterns are injected into the SVG `<defs>` section and referenced via `fill: url(#pattern-id)`.
-
-```svg
-<defs>
-  <!-- 
-    Pattern Design Notes:
-    - patternUnits="userSpaceOnUse" ensures consistent pattern size regardless of hex size
-    - Small pattern tiles (3-5px) create fine textures that print well
-    - Stroke width kept thin (0.5-1px) for clarity at small sizes
-    - #333 color provides good contrast without being harsh
-  -->
-
-  <!-- Diagonal hatch for Cover - light, 45° lines -->
-  <pattern id="pattern-cover" patternUnits="userSpaceOnUse" width="4" height="4">
-    <path d="M0,4 l4,-4 M-1,1 l2,-2 M3,5 l2,-2" 
-          stroke="#333" stroke-width="0.5" fill="none" opacity="0.3"/>
-  </pattern>
-  
-  <!-- Dot pattern for Difficult - evenly spaced dots -->
-  <pattern id="pattern-difficult" patternUnits="userSpaceOnUse" width="5" height="5">
-    <circle cx="2.5" cy="2.5" r="0.8" fill="#333" opacity="0.5"/>
-  </pattern>
-  
-  <!-- Dense hatch for Impassable - tight 45° lines -->
-  <pattern id="pattern-impassable" patternUnits="userSpaceOnUse" width="3" height="3">
-    <path d="M0,3 l3,-3 M-0.5,0.5 l1,-1 M2.5,3.5 l1,-1" 
-          stroke="#333" stroke-width="1" fill="none" opacity="0.7"/>
-  </pattern>
-  
-  <!-- Cross hatch for Dangerous - X pattern -->
-  <pattern id="pattern-dangerous" patternUnits="userSpaceOnUse" width="4" height="4">
-    <path d="M0,0 l4,4 M4,0 l-4,4" 
-          stroke="#333" stroke-width="0.5" fill="none" opacity="0.5"/>
-  </pattern>
-</defs>
-```
-
-**Pattern as TypeScript constant:**
+Each terrain preset has a unique, visually distinct pattern:
 
 ```typescript
-// lib/patterns.ts
-export const SVG_PATTERNS = {
-  cover: `<pattern id="pattern-cover" patternUnits="userSpaceOnUse" width="4" height="4">
-    <path d="M0,4 l4,-4 M-1,1 l2,-2 M3,5 l2,-2" stroke="#333" stroke-width="0.5" fill="none" opacity="0.3"/>
+const TERRAIN_PATTERNS = {
+  open: 'none', // White fill
+  
+  forest: `<pattern id="pattern-forest" patternUnits="userSpaceOnUse" width="6" height="6">
+    <circle cx="2" cy="2" r="1" fill="#333" opacity="0.4"/>
+    <circle cx="5" cy="4" r="0.8" fill="#333" opacity="0.3"/>
   </pattern>`,
   
-  difficult: `<pattern id="pattern-difficult" patternUnits="userSpaceOnUse" width="5" height="5">
-    <circle cx="2.5" cy="2.5" r="0.8" fill="#333" opacity="0.5"/>
+  ruins: `<pattern id="pattern-ruins" patternUnits="userSpaceOnUse" width="5" height="5">
+    <path d="M0,5 l3,-3 M2,5 l3,-3" stroke="#333" stroke-width="0.8" fill="none" opacity="0.5"/>
+    <path d="M4,2 l-1,1" stroke="#333" stroke-width="0.5" fill="none" opacity="0.3"/>
   </pattern>`,
   
-  impassable: `<pattern id="pattern-impassable" patternUnits="userSpaceOnUse" width="3" height="3">
-    <path d="M0,3 l3,-3 M-0.5,0.5 l1,-1 M2.5,3.5 l1,-1" stroke="#333" stroke-width="1" fill="none" opacity="0.7"/>
+  hill: `<pattern id="pattern-hill" patternUnits="userSpaceOnUse" width="8" height="8">
+    <path d="M1,6 Q4,3 7,6" stroke="#333" stroke-width="0.6" fill="none" opacity="0.4"/>
+    <path d="M2,4 Q4,2 6,4" stroke="#333" stroke-width="0.5" fill="none" opacity="0.3"/>
   </pattern>`,
   
-  dangerous: `<pattern id="pattern-dangerous" patternUnits="userSpaceOnUse" width="4" height="4">
-    <path d="M0,0 l4,4 M4,0 l-4,4" stroke="#333" stroke-width="0.5" fill="none" opacity="0.5"/>
+  building: `<pattern id="pattern-building" patternUnits="userSpaceOnUse" width="3" height="3">
+    <rect width="3" height="3" fill="#333" opacity="0.7"/>
   </pattern>`,
-} as const;
-
-export const ALL_PATTERNS = Object.values(SVG_PATTERNS);
+  
+  waterShallow: `<pattern id="pattern-water-shallow" patternUnits="userSpaceOnUse" width="8" height="4">
+    <path d="M0,2 Q2,1 4,2 T8,2" stroke="#333" stroke-width="0.5" fill="none" opacity="0.4"/>
+  </pattern>`,
+  
+  waterDeep: `<pattern id="pattern-water-deep" patternUnits="userSpaceOnUse" width="6" height="3">
+    <path d="M0,1.5 Q1.5,0.5 3,1.5 T6,1.5" stroke="#333" stroke-width="0.7" fill="none" opacity="0.6"/>
+  </pattern>`,
+  
+  barricade: `<pattern id="pattern-barricade" patternUnits="userSpaceOnUse" width="4" height="4">
+    <path d="M1,0 l0,2 M3,2 l0,2" stroke="#333" stroke-width="1" fill="none" opacity="0.5"/>
+  </pattern>`,
+  
+  rubble: `<pattern id="pattern-rubble" patternUnits="userSpaceOnUse" width="6" height="6">
+    <circle cx="1" cy="2" r="0.6" fill="#333" opacity="0.4"/>
+    <circle cx="4" cy="1" r="0.4" fill="#333" opacity="0.3"/>
+    <circle cx="3" cy="4" r="0.5" fill="#333" opacity="0.35"/>
+    <circle cx="5" cy="5" r="0.3" fill="#333" opacity="0.3"/>
+  </pattern>`,
+  
+  dangerous: `<pattern id="pattern-dangerous" patternUnits="userSpaceOnUse" width="5" height="5">
+    <path d="M1,1 l3,3 M4,1 l-3,3" stroke="#333" stroke-width="0.8" fill="none" opacity="0.5"/>
+  </pattern>`,
+  
+  // Extended presets
+  field: `<pattern id="pattern-field" patternUnits="userSpaceOnUse" width="4" height="6">
+    <path d="M2,0 l0,6" stroke="#333" stroke-width="0.6" fill="none" opacity="0.35"/>
+  </pattern>`,
+  
+  steepHill: `<pattern id="pattern-steep-hill" patternUnits="userSpaceOnUse" width="6" height="6">
+    <path d="M0.5,5 Q3,1 5.5,5" stroke="#333" stroke-width="0.7" fill="none" opacity="0.5"/>
+    <path d="M1,3.5 Q3,1 5,3.5" stroke="#333" stroke-width="0.6" fill="none" opacity="0.4"/>
+    <path d="M1.5,2 Q3,0.5 4.5,2" stroke="#333" stroke-width="0.5" fill="none" opacity="0.3"/>
+  </pattern>`,
+  
+  rocks: `<pattern id="pattern-rocks" patternUnits="userSpaceOnUse" width="4" height="4">
+    <rect width="4" height="4" fill="#333" opacity="0.6"/>
+    <circle cx="1" cy="1" r="0.5" fill="#fff" opacity="0.3"/>
+  </pattern>`,
+  
+  crater: `<pattern id="pattern-crater" patternUnits="userSpaceOnUse" width="8" height="8">
+    <circle cx="4" cy="4" r="3" stroke="#333" stroke-width="0.5" fill="none" opacity="0.4" stroke-dasharray="1,1"/>
+    <circle cx="4" cy="4" r="1.5" stroke="#333" stroke-width="0.4" fill="none" opacity="0.3"/>
+  </pattern>`,
+  
+  swamp: `<pattern id="pattern-swamp" patternUnits="userSpaceOnUse" width="8" height="6">
+    <path d="M0,3 Q2,2 4,3 T8,3" stroke="#333" stroke-width="0.4" fill="none" opacity="0.35"/>
+    <circle cx="2" cy="1" r="0.4" fill="#333" opacity="0.3"/>
+    <circle cx="6" cy="5" r="0.3" fill="#333" opacity="0.25"/>
+  </pattern>`,
+};
 ```
+
+### Hex Labels
+
+Each hex can display:
+- **Coordinate** (optional) — Column letter + row number (A1, B2, etc.)
+- **Elevation** (optional) — Numeric level (+1, +2, -1, etc.)
+
+Labels are small, centered in hex, with text shadow for legibility over patterns.
+
+### Map Legend
+
+The legend explains terrain properties and is essential for play. Options:
+- **On-map** (optional) — Small legend in corner of map
+- **Separate page** (optional) — Full legend on second printed page
+- **Neither** — Players reference digital legend
+
+Legend includes:
+- Terrain preset name and pattern swatch
+- Properties (Cover, Difficult, Dangerous, Impassable)
+- LOS type symbol (○ ◧ ⬛)
+- Special rules notes (e.g., "Dangerous on Rush/Charge only")
+
+### Map Metadata
+
+Always displayed (small, corner placement):
+- **Seed** — For regeneration and sharing
+
+Optional:
+- **Title** — User-defined map name
+- **Scale reminder** — "1 hex = 1 inch (half-scale)"
 
 ---
 
 ## Tech Stack
 
-### Core Technologies
-
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| TypeScript | 5.x | Type-safe development, better tooling |
-| Vite | 5.x | Fast dev server, optimized builds, easy deployment |
-| Preact | 10.x | Lightweight reactive UI (~3KB gzipped) |
-| Tailwind CSS | 3.x | Utility-first styling, consistent design |
-| oi.hexmap.js | 0.8.4 | SVG hex rendering engine (MIT license) |
+| TypeScript | 5.x | Type-safe development |
+| Vite | 5.x | Fast dev server, optimized builds |
+| Preact | 10.x | Lightweight reactive UI (~3KB) |
+| Tailwind CSS | 3.x | Utility-first styling |
+| oi.hexmap.js | 0.8.4 | SVG hex rendering engine |
 
 ### Why This Stack?
 
-**TypeScript over JavaScript:**
-- Catches bugs at compile time (typos in config objects, wrong parameter types)
-- Better editor autocomplete and inline documentation
-- Structured data (hex configs, terrain types, HexJSON) benefits from type definitions
-- Industry standard skill worth developing
-
-**Preact over vanilla JS:**
-- Automatic UI updates when state changes (terrain sliders, toggles, regenerate)
-- Component-based organization keeps code manageable
-- Only 3KB gzipped — negligible bundle impact
-- React-compatible JSX syntax — transferable knowledge
-
-**Preact over React:**
-- Much smaller bundle (3KB vs 40KB+)
-- Same developer experience and patterns
-- More than sufficient for this project's complexity
-
-**Tailwind over custom CSS:**
-- Rapid UI development with utility classes
-- Consistent spacing, colors, and typography out of the box
-- Works seamlessly with Preact/JSX
-- Print styles and SVG patterns still use custom CSS where needed
-
-**oi.hexmap.js:**
-- Purpose-built for hex cartograms with SVG output
-- Supports HexJSON format (standard for hex layouts)
-- Built-in pattern support via `<defs>`
-- CSS class assignment per hex for terrain styling
-- Boundary/edge drawing for roads, rivers, deployment zones
-- MIT licensed, actively maintained
-- Already cloned to `oi.hexmap.js/` in this workspace
-
-### Deployment
-
-**GitHub Pages via Vite:**
-
-1. Configure base path in `vite.config.ts`:
-   ```typescript
-   export default defineConfig({
-     base: '/opr-hex-generator/',  // Replace with your repo name
-     // ... other config
-   });
-   ```
-
-2. Build produces static files in `dist/`
-
-3. GitHub Actions workflow handles automatic deployment on push to main
-
-**Workflow file (`.github/workflows/deploy.yml`):**
-
-```yaml
-name: Deploy to GitHub Pages
-
-on:
-  push:
-    branches: [main]
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/deploy-pages@v4
-        id: deployment
-```
+- **TypeScript** — Terrain presets, hex data, and generation configs benefit from strong typing
+- **Preact** — Reactive UI for sliders and toggles without React's bundle size
+- **Tailwind** — Rapid UI development; print styles use custom CSS
+- **oi.hexmap.js** — Purpose-built for hex rendering with pattern support and boundary drawing
 
 ---
 
@@ -444,59 +503,52 @@ jobs:
 
 ```
 opr-hex-generator/
-├── index.html                   # Entry HTML (loads oi.hexmap.js via script tag)
-├── vite.config.ts               # Vite configuration
-├── tailwind.config.js           # Tailwind configuration
-├── tsconfig.json                # TypeScript configuration
+├── index.html
+├── vite.config.ts
+├── tailwind.config.js
+├── tsconfig.json
 ├── package.json
 │
 ├── src/
-│   ├── main.tsx                 # App entry point, renders to #app
-│   ├── app.tsx                  # Root component, manages global state
+│   ├── main.tsx                 # Entry point
+│   ├── app.tsx                  # Root component, global state
 │   │
 │   ├── components/
-│   │   ├── MapCanvas.tsx        # Hexmap container, integrates oi.hexmap.js
-│   │   ├── ControlPanel.tsx     # Settings sidebar wrapper
-│   │   ├── TerrainSliders.tsx   # Terrain weight sliders (5 sliders, sum to 100%)
-│   │   ├── ToggleGroup.tsx      # Boolean toggles (elevation, coordinates, etc.)
-│   │   ├── SeedInput.tsx        # Seed text input for reproducible maps
-│   │   └── ExportButtons.tsx    # Print, SVG download, share URL buttons
+│   │   ├── MapCanvas.tsx        # Hexmap container, oi.hexmap.js integration
+│   │   ├── ControlPanel.tsx     # Settings sidebar
+│   │   ├── TerrainMixSliders.tsx # Terrain percentage controls
+│   │   ├── DensitySlider.tsx    # Overall terrain density
+│   │   ├── ToggleGroup.tsx      # Elevation, coordinates toggles
+│   │   ├── SeedInput.tsx        # Seed for reproducibility
+│   │   ├── PresetSelector.tsx   # Balanced/Open/Dense/Custom
+│   │   └── ExportButtons.tsx    # Print, SVG download, share
 │   │
 │   ├── lib/
-│   │   ├── generator.ts         # Procedural map generation algorithm
-│   │   ├── terrain.ts           # Terrain type definitions, default weights
-│   │   ├── patterns.ts          # SVG pattern string constants
-│   │   ├── hexmath.ts           # Hex coordinate utilities (q,r to label, etc.)
-│   │   ├── random.ts            # Seeded random number generator
-│   │   └── export.ts            # SVG serialization, print trigger
+│   │   ├── generator.ts         # Procedural generation algorithm
+│   │   ├── terrainPresets.ts    # Terrain preset definitions
+│   │   ├── patterns.ts          # SVG pattern strings
+│   │   ├── validation.ts        # OPR placement rule validation
+│   │   ├── hexmath.ts           # Hex coordinate utilities
+│   │   ├── random.ts            # Seeded PRNG
+│   │   └── export.ts            # SVG serialization, print
 │   │
 │   ├── types/
-│   │   ├── index.ts             # Shared type definitions (TerrainType, MapConfig, etc.)
-│   │   └── oi-hexmap.d.ts       # TypeScript declarations for oi.hexmap.js
+│   │   ├── index.ts             # Shared types
+│   │   └── oi-hexmap.d.ts       # oi.hexmap.js type declarations
 │   │
 │   └── styles/
-│       ├── index.css            # Tailwind directives + base styles
-│       ├── map.css              # Hex styling, patterns, London 1895 aesthetic
-│       └── print.css            # Print-specific overrides (@media print)
+│       ├── index.css            # Tailwind + base styles
+│       ├── map.css              # Hex styling, patterns
+│       └── print.css            # Print overrides
 │
 ├── public/
 │   └── lib/
-│       └── oi.hexmap.min.js     # Hexmap library (copied from cloned repo)
+│       └── oi.hexmap.min.js     # Hex rendering library
 │
 └── .github/
     └── workflows/
-        └── deploy.yml           # GitHub Pages deployment workflow
+        └── deploy.yml           # GitHub Pages deployment
 ```
-
-### Key File Responsibilities
-
-| File | Responsibility |
-|------|----------------|
-| `app.tsx` | Holds `MapConfig` state, passes to children, handles regenerate |
-| `MapCanvas.tsx` | Creates/destroys `OI.hexmap` instance when config changes |
-| `generator.ts` | Pure function: `(config, seed) → HexJSON` |
-| `random.ts` | Seedable PRNG for reproducible terrain distribution |
-| `oi-hexmap.d.ts` | Makes TypeScript aware of the `OI.hexmap` global |
 
 ---
 
@@ -505,61 +557,373 @@ opr-hex-generator/
 ### Core Types
 
 ```typescript
-// types/index.ts
-
-export type TerrainType = 'open' | 'cover' | 'difficult' | 'impassable' | 'dangerous';
-
-export type HexLayout = 'odd-q' | 'even-q' | 'odd-r' | 'even-r';
-
-export interface HexData {
-  q: number;
-  r: number;
-  n: string;                    // Display name (coordinate label)
-  terrain: TerrainType;
-  elevation?: number;           // -2 to +3 typically
-  class?: string;               // CSS classes
-  objective?: boolean;          // Control point marker
+// Terrain property flags
+interface TerrainProperties {
+  cover: boolean;
+  difficult: boolean;
+  dangerous: boolean | 'rush-charge';
+  impassable: boolean;
+  blocking: boolean;
 }
 
-export interface TerrainWeights {
-  open: number;
-  cover: number;
-  difficult: number;
-  impassable: number;
-  dangerous: number;
+// LOS categories
+type LOSType = 'clear' | 'partial' | 'blocking';
+
+// Terrain preset definition
+interface TerrainPreset {
+  id: string;
+  name: string;
+  properties: TerrainProperties;
+  losType: LOSType;
+  baseElevation?: number;
+  pattern: string;
+  description: string;
 }
 
-export interface MapConfig {
+// Individual hex data
+interface HexData {
+  q: number;                    // Column
+  r: number;                    // Row
+  id: string;                   // Unique identifier "q-r"
+  coordinate: string;           // Display label "A1", "B2"
+  terrain: string;              // Preset ID
+  elevation: number;            // Height level
+  metadata?: Record<string, unknown>; // Future extensibility
+}
+
+// Generation configuration
+interface GeneratorConfig {
   columns: number;
   rows: number;
-  layout: HexLayout;
   seed: string;
-  terrainWeights: TerrainWeights;
+  density: number;              // 0-1, maps to terrain piece count
+  terrainMix: {
+    blocking: number;           // 0-1 percentage
+    cover: number;
+    difficult: number;
+    dangerous: number;
+  };
   elevationEnabled: boolean;
   elevationRange: { min: number; max: number };
-  elevationProbability: number;
-  objectiveCount: number;
-  showCoordinates: boolean;
-  showElevation: boolean;
-  mapTitle: string;
 }
 
-export interface HexJSON {
-  layout: HexLayout;
+// Display options
+interface DisplayConfig {
+  showCoordinates: boolean;
+  showElevation: boolean;
+  showTitle: boolean;
+  title: string;
+  legendPosition: 'none' | 'corner' | 'separate';
+}
+
+// HexJSON format (oi.hexmap.js)
+interface HexJSON {
+  layout: 'odd-q' | 'even-q' | 'odd-r' | 'even-r';
   hexes: Record<string, HexData>;
   boundaries?: Record<string, {
     edges: Array<{ q: number; r: number; e: number }>;
   }>;
 }
+```
 
-export interface PrintConfig {
-  pageSize: 'letter' | 'a4';
-  orientation: 'portrait' | 'landscape';
-  margins: number;              // in inches
+---
+
+## Configuration Defaults
+
+```typescript
+const DEFAULT_GENERATOR_CONFIG: GeneratorConfig = {
+  columns: 36,
+  rows: 24,
+  seed: '',                     // Empty = random
+  density: 0.5,                 // ~17-18 terrain pieces
+  terrainMix: {
+    blocking: 0.50,             // OPR: at least 50%
+    cover: 0.33,                // OPR: at least 33%
+    difficult: 0.33,            // OPR: at least 33%
+    dangerous: 0.10,            // Light dangerous presence
+  },
+  elevationEnabled: true,
+  elevationRange: { min: -2, max: 3 },
+};
+
+const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
+  showCoordinates: false,       // Clean look by default
+  showElevation: true,          // Important for gameplay
+  showTitle: false,
+  title: 'Battle Map',
+  legendPosition: 'none',       // Players use digital reference
+};
+```
+
+---
+
+## Print Styles
+
+```css
+@media print {
+  /* Hide UI */
+  aside, button, header, .control-panel, .no-print {
+    display: none !important;
+  }
+
+  /* Clean slate */
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Map fills page */
+  .map-container {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  /* Crisp vectors */
+  svg {
+    shape-rendering: geometricPrecision;
+  }
+
+  /* Black strokes */
+  .hex path {
+    stroke: #000 !important;
+    stroke-width: 0.4mm !important;
+  }
+
+  /* Black patterns */
+  pattern path, pattern circle, pattern rect {
+    stroke: #000 !important;
+    fill: #000 !important;
+  }
+
+  /* Black labels */
+  .hex-label {
+    fill: #000 !important;
+    font-family: Arial, sans-serif !important;
+  }
+
+  /* White base for open terrain */
+  .terrain-open path {
+    fill: white !important;
+  }
+}
+
+@page {
+  size: letter portrait;
+  margin: 0.2in;
 }
 ```
 
-### oi.hexmap.js Type Declarations
+---
+
+## Feature Roadmap
+
+### Phase 1: Core Generation (MVP)
+- [ ] Project scaffolding (Vite + Preact + Tailwind + TypeScript)
+- [ ] oi.hexmap.js integration with TypeScript declarations
+- [ ] Terrain preset definitions with correct OPR properties
+- [ ] SVG patterns for all terrain types
+- [ ] Seeded random number generator
+- [ ] Basic procedural generation (terrain placement)
+- [ ] OPR placement rule validation (gaps, LOS blocking)
+- [ ] Basic UI: map display + regenerate button
+- [ ] Elevation system (2" per level, ±1 climbable)
+
+### Phase 2: Controls & Configuration
+- [ ] Terrain density slider
+- [ ] Terrain mix sliders (blocking/cover/difficult/dangerous %)
+- [ ] Generation preset selector (Balanced/Open/Dense/Hazardous)
+- [ ] Elevation toggle
+- [ ] Coordinate label toggle
+- [ ] Seed input for reproducibility
+- [ ] "Randomize" button
+
+### Phase 3: Export & Print
+- [ ] Print stylesheet with proper margins
+- [ ] Browser print dialog integration
+- [ ] SVG download button
+- [ ] Shareable URL with seed parameter
+- [ ] Copy share link to clipboard
+
+### Phase 4: Legend & Polish
+- [ ] Map legend component (terrain key with LOS symbols)
+- [ ] Legend positioning options (corner/separate/none)
+- [ ] Optional map title
+- [ ] A4 paper size option
+- [ ] Mobile-responsive layout
+- [ ] GitHub Pages deployment
+
+### Future Phases (Post-MVP)
+- [ ] Custom terrain preset naming
+- [ ] Boundary overlays (rivers, roads)
+- [ ] Advanced Terrain rules (Army Terrain, Relic Terrain)
+- [ ] Terrain placement styles from OPR (Random, Alternating, Six Squares, etc.)
+- [ ] Planet-themed terrain generators (Hospitable, Wasteland, Death)
+- [ ] Hex click-to-edit for manual terrain adjustment
+- [ ] Multiple map sizes (18×12 skirmish, 36×24 standard, 48×32 large)
+- [ ] Scenario templates
+- [ ] Import/export map configurations as JSON
+
+---
+
+## Deployment Zones
+
+OPR deployment is 12" from table edge (6" at half-scale = 6 hexes).
+
+**For hex play:** Players deploy within the first 6 rows of hexes on their respective table edges.
+
+- **Player 1 deployment:** Rows 0–5 (hexes with r = 0 to 5)
+- **Player 2 deployment:** Rows 18–23 (hexes with r = 18 to 23)
+
+The generator does NOT mark deployment zones — players simply count 6 hexes from their edge. This keeps the map neutral and reusable for different scenarios.
+
+---
+
+## Playing OPR with Hex Maps
+
+### Quick Start for Players
+
+1. **Print the map** or display on a tablet/screen
+2. **Use half-distance rules** — all distances in OPR are halved
+3. **1 hex = 1 inch** — count hexes instead of measuring
+4. **Reference the legend** for terrain properties
+
+### Movement Tips
+
+- **Counting hexes:** Count the destination hex, not the starting hex. Moving from hex A to adjacent hex B = 1 hex of movement.
+- **Difficult terrain:** If ANY hex in your path is Difficult, your entire move is limited to 3 hexes max.
+- **Climbing:** Moving up or down 1 elevation level costs +1 hex of movement. Moving 2+ levels at once is blocked — find a path with intermediate levels.
+- **Impassable:** You cannot enter Impassable hexes at all. Plan your path around them.
+
+### Combat Tips
+
+- **LOS check:** Use a straightedge or string from hex center to hex center.
+- **Partial terrain:** If the line grazes the edge of a Partial terrain hex, use common sense — if it's clearly passing through, it blocks; if it's barely touching, it doesn't.
+- **Cover:** When in doubt about "majority in cover," count models in Cover hexes vs total models.
+- **Elevation advantage:** Units on higher elevation can ignore one piece of intervening terrain or one unit for LOS purposes.
+
+### Common Conversions
+
+| OPR Rule | Hex Equivalent |
+|----------|----------------|
+| "Within 1" of" | Same hex or adjacent hex |
+| "Within 3" of" | Within 3 hexes |
+| "More than 9" away" | More than 9 hexes away |
+| "Base contact" | Same hex |
+| "Wholly within" | All models in specified hex area |
+| "Charge into contact" | Move into target's hex |
+
+### Charging in Hex Play
+
+When charging, a unit must end with at least one model in the same hex as an enemy model (representing base contact). The charging unit's remaining models should be in adjacent hexes, maintaining coherency.
+
+If multiple models from the charging unit can reach the target hex, only one needs to actually enter it — the others form a "pile in" around adjacent hexes.
+
+---
+
+## Local Reference Materials
+
+### oi.hexmap.js (Cloned)
+
+**Location:** `oi.hexmap.js/`
+
+```
+oi.hexmap.js/
+├── dist/
+│   ├── oi.hexmap.js          # Full source — read for API understanding
+│   └── oi.hexmap.min.js      # Minified — copy to public/lib/
+├── index.html                # Examples — open in browser for demos
+├── resources/
+│   └── *.hexjson             # Example HexJSON files
+└── README.md
+```
+
+### OPR Rules Reference
+
+**Location:** `opr-rulebook-content.txt`
+
+Contains extracted terrain rules from OPR rulebook:
+- Terrain types and properties (lines 1-100)
+- Terrain setup guidelines (lines 100-180)
+- Terrain placement recommendations (lines 180-260)
+- Advanced terrain rules (lines 260+) — future reference
+
+---
+
+## Quick Reference
+
+### OPR Terrain Properties Summary
+
+| Property | Effect | Hex Rule |
+|----------|--------|----------|
+| Cover | +1 Defense when majority inside/behind | Model in Cover hex or LOS crosses blocking hex |
+| Difficult | Max 6" move (3 hexes at half-scale) | Any hex in path is Difficult = max 3 hex move |
+| Dangerous | Roll Tough dice on enter/activate; 1 = wound | Entering or starting activation in hex |
+| Impassable | Cannot enter | Cannot move into hex |
+| Blocking | Cannot see through | LOS line cannot cross hex |
+| Elevated | LOS advantage; climbing rules apply | Check elevation difference between hexes |
+
+### Elevation Quick Rules
+
+| Level Difference | Result |
+|------------------|--------|
+| ±1 | Climbable (costs movement) |
+| ±2 or more | Impassable |
+
+### LOS Quick Reference
+
+| Symbol | Meaning |
+|--------|---------|
+| ○ | Clear — see through |
+| ◧ | Partial — see into/out, not through |
+| ⬛ | Blocking — cannot see through |
+
+### Scale Quick Reference
+
+| OPR Distance (Half-Scale) | Hexes | Common Use |
+|---------------------------|-------|------------|
+| 1" | 1 hex | Base contact, coherency |
+| 3" | 3 hexes | Advance move (infantry) |
+| 6" | 6 hexes | Rush/Charge, deployment depth |
+| 9" | 9 hexes | Max coherency, objective spacing |
+| 12" | 12 hexes | Standard shooting range |
+| 18" | 18 hexes | Long range weapons |
+| 24" | 24 hexes | Sniper/artillery range |
+
+---
+
+## Glossary
+
+| Term | Definition |
+|------|------------|
+| **Flat-topped hex** | Hex orientation with horizontal top/bottom edges |
+| **odd-q** | Offset coordinate system where odd columns shift down by half a hex |
+| **HexJSON** | JSON format for hex layouts used by oi.hexmap.js |
+| **Seed** | String for reproducible random generation |
+| **PRNG** | Pseudo-random number generator |
+| **OPR** | One Page Rules tabletop wargaming system |
+| **Half-scale** | OPR variant using half distances on half-size table |
+| **Preset** | Named terrain type bundling OPR properties |
+| **LOS** | Line of sight |
+| **Cluster** | Group of adjacent hexes sharing the same terrain type |
+| **Coherency** | OPR rule requiring models to stay within specified distance |
+| **Activation** | When a unit takes its turn to perform actions |
+
+---
+
+## License
+
+Project code: MIT License
+oi.hexmap.js: MIT License (ODI Leeds, 2021)
+
+---
+
+## Appendix A: oi.hexmap.js Type Declarations
 
 ```typescript
 // types/oi-hexmap.d.ts
@@ -573,34 +937,13 @@ declare namespace OI {
       clip?: boolean;
       format?: (txt: string, attr: LabelAttributes) => string;
     };
-    tooltip?: {
-      format?: (txt: string, attr: LabelAttributes) => string;
-    };
-    grid?: {
-      show?: boolean;
-    };
-    style?: {
-      default?: HexStyle;
-      highlight?: Partial<HexStyle>;
-      selected?: Partial<HexStyle>;
-    };
     ready?: (this: Hexmap) => void;
-  }
-
-  interface HexStyle {
-    fill: string;
-    'fill-opacity': number;
-    stroke: string;
-    'stroke-width': number;
-    'stroke-opacity': number;
-    'font-size': number;
   }
 
   interface LabelAttributes {
     hex: HexData;
     size: number;
     'font-size': number;
-    'line-height'?: number;
     x: number;
     y: number;
   }
@@ -610,25 +953,17 @@ declare namespace OI {
     hex: SVGGElement;
     path: SVGPathElement;
     label?: SVGTextElement;
-    fillcolour: string;
-    selected: boolean;
-    active: boolean;
-    hover: boolean;
   }
 
   class Hexmap {
     constructor(el: HTMLElement, options?: HexmapOptions);
-    version: string;
     el: HTMLElement;
     areas: Record<string, HexArea>;
     mapping: HexJSON;
     
     load(file: string | HexJSON, callback?: () => void): this;
     updateColours(fn?: (region: string) => string): this;
-    updateLabels(labelKey?: string, tooltipKey?: string): this;
-    updateBoundaries(fn?: (name: string, props: any) => Partial<HexStyle>): this;
     on(event: 'mouseover' | 'mouseout' | 'click', callback: (e: HexEvent) => void): this;
-    setClass(fn: (region: string, area: HexArea) => void): this;
   }
 
   interface HexEvent {
@@ -637,7 +972,6 @@ declare namespace OI {
       region: string;
       data: HexData;
     };
-    target: SVGGElement;
   }
 
   function ready(fn: () => void): void;
@@ -651,198 +985,67 @@ declare const OI: {
 
 ---
 
-## Configuration Defaults
+## Appendix B: Example Component Implementation
 
-```typescript
-// lib/terrain.ts
-
-export const DEFAULT_CONFIG: MapConfig = {
-  columns: 36,
-  rows: 24,
-  layout: 'odd-q',
-  seed: '',                     // Empty = random seed
-  
-  terrainWeights: {
-    open: 0.40,
-    cover: 0.25,
-    difficult: 0.20,
-    impassable: 0.10,
-    dangerous: 0.05,
-  },
-  
-  elevationEnabled: true,
-  elevationRange: { min: -2, max: 3 },
-  elevationProbability: 0.25,   // 25% of hexes have non-zero elevation
-  
-  objectiveCount: 3,
-  showCoordinates: true,
-  showElevation: true,
-  mapTitle: 'Battle Map',
-};
-
-export const PRINT_CONFIG: PrintConfig = {
-  pageSize: 'letter',
-  orientation: 'portrait',
-  margins: 0.20,
-};
-
-export const TERRAIN_PATTERNS: Record<TerrainType, string> = {
-  open: 'none',
-  cover: 'url(#pattern-cover)',
-  difficult: 'url(#pattern-difficult)',
-  impassable: 'url(#pattern-impassable)',
-  dangerous: 'url(#pattern-dangerous)',
-};
-```
-
----
-
-## Feature Roadmap
-
-### Phase 1: Core Generation ✱ MVP
-- [ ] Project scaffolding (Vite + Preact + Tailwind + TypeScript)
-- [ ] Copy `oi.hexmap.min.js` to `public/lib/`, load via script tag
-- [ ] Create TypeScript declarations for oi.hexmap.js
-- [ ] Implement seeded random number generator
-- [ ] Procedural hex grid generation (36×24, odd-q layout)
-- [ ] Terrain type assignment with weighted randomization
-- [ ] SVG terrain patterns (all 5 types)
-- [ ] Basic UI: map display + regenerate button
-- [ ] Verify patterns render correctly in browser
-
-### Phase 2: Controls & Configuration
-- [ ] Terrain weight sliders (constrained to sum to 100%)
-- [ ] Elevation toggle and numeric labels
-- [ ] Coordinate label toggle (A1, B2, etc.)
-- [ ] Seed input field for reproducible maps
-- [ ] Map title input
-- [ ] "Randomize" button generates new seed
-
-### Phase 3: OPR Features
-- [ ] Control point / objective markers (star or flag icon in hex)
-- [ ] Deployment zone boundaries (using HexJSON `boundaries` feature)
-- [ ] Terrain distribution presets:
-  - Balanced (default weights)
-  - Open Field (80% open, minimal cover)
-  - Dense Urban (high cover/impassable)
-  - Hazardous (elevated dangerous terrain)
-  - Custom (user-defined)
-
-### Phase 4: Export & Print
-- [ ] Print stylesheet with proper margins and monochrome output
-- [ ] Browser print dialog integration (Ctrl+P / Cmd+P)
-- [ ] SVG download button (serializes current map)
-- [ ] Shareable URL with seed as query parameter (`?seed=abc123`)
-- [ ] Copy share link to clipboard
-
-### Phase 5: Polish & Deploy
-- [ ] Map legend (terrain type key)
-- [ ] A4 paper size option (recalculates hex size)
-- [ ] Mobile-responsive layout (stacked controls on small screens)
-- [ ] Save/load configurations to localStorage
-- [ ] GitHub Actions deployment workflow
-- [ ] README with usage instructions and screenshots
-
-### Future Ideas (Post-MVP)
-- [ ] Road overlay (linear features between hexes)
-- [ ] River/water overlay
-- [ ] Scenario templates (specific OPR mission layouts)
-- [ ] Multiple map sizes (18×12 for skirmish, 36×24 standard)
-- [ ] Hex click-to-edit (manually override terrain)
-
----
-
-## Component Overview
-
-### App.tsx — Root Component
-
-Manages global state and coordinates child components.
-
-```tsx
-import { useState, useCallback } from 'preact/hooks';
-import { MapCanvas } from './components/MapCanvas';
-import { ControlPanel } from './components/ControlPanel';
-import { DEFAULT_CONFIG } from './lib/terrain';
-import { generateSeed } from './lib/random';
-import type { MapConfig } from './types';
-
-export function App() {
-  const [config, setConfig] = useState<MapConfig>({
-    ...DEFAULT_CONFIG,
-    seed: generateSeed(),
-  });
-
-  const handleRegenerate = useCallback(() => {
-    setConfig(prev => ({ ...prev, seed: generateSeed() }));
-  }, []);
-
-  return (
-    <div class="flex h-screen">
-      <ControlPanel 
-        config={config} 
-        onChange={setConfig} 
-        onRegenerate={handleRegenerate}
-      />
-      <main class="flex-1 p-4 flex items-center justify-center bg-gray-100">
-        <div class="map-container bg-white shadow-lg">
-          <MapCanvas config={config} />
-        </div>
-      </main>
-    </div>
-  );
-}
-```
-
-### MapCanvas.tsx — Hexmap Integration
-
-Wraps oi.hexmap.js, recreates the map when config changes.
+### MapCanvas.tsx
 
 ```tsx
 import { useRef, useEffect } from 'preact/hooks';
 import { generateMap } from '../lib/generator';
-import { ALL_PATTERNS, TERRAIN_FILL } from '../lib/patterns';
-import { formatHexLabel } from '../lib/hexmath';
-import type { MapConfig } from '../types';
+import { ALL_PATTERNS } from '../lib/patterns';
+import { TERRAIN_PRESETS } from '../lib/terrainPresets';
+import type { GeneratorConfig, DisplayConfig } from '../types';
 
 interface Props {
-  config: MapConfig;
+  generatorConfig: GeneratorConfig;
+  displayConfig: DisplayConfig;
 }
 
-export function MapCanvas({ config }: Props) {
+export function MapCanvas({ generatorConfig, displayConfig }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
     
     // Generate HexJSON from config
-    const hexJson = generateMap(config);
+    const hexJson = generateMap(generatorConfig);
     
-    // Clear previous map instance
+    // Clear previous instance
     containerRef.current.innerHTML = '';
     
-    // Create new hexmap
+    // Create hexmap
     const hexmap = new OI.hexmap(containerRef.current, {
       hexjson: hexJson,
       patterns: ALL_PATTERNS,
       label: {
-        show: config.showCoordinates || config.showElevation,
+        show: displayConfig.showCoordinates || displayConfig.showElevation,
         clip: true,
-        format: (txt, attr) => formatHexLabel(attr.hex, config),
+        format: (txt, attr) => {
+          const parts: string[] = [];
+          if (displayConfig.showCoordinates) {
+            parts.push(attr.hex.coordinate);
+          }
+          if (displayConfig.showElevation && attr.hex.elevation !== 0) {
+            const sign = attr.hex.elevation > 0 ? '+' : '';
+            parts.push(`${sign}${attr.hex.elevation}`);
+          }
+          return parts.join(' ');
+        },
       },
       ready() {
-        // Apply terrain patterns as fill colors
+        // Apply terrain patterns
         this.updateColours((region) => {
-          const terrain = this.areas[region].data.terrain;
-          return TERRAIN_FILL[terrain];
+          const terrainId = this.areas[region].data.terrain;
+          const preset = TERRAIN_PRESETS[terrainId];
+          return preset?.pattern ? `url(#${preset.pattern})` : 'white';
         });
       },
     });
 
-    // Cleanup on unmount or config change
     return () => {
       containerRef.current?.replaceChildren();
     };
-  }, [config]);
+  }, [generatorConfig, displayConfig]);
 
   return (
     <div 
@@ -854,85 +1057,15 @@ export function MapCanvas({ config }: Props) {
 }
 ```
 
-### Generator.ts — Procedural Generation
-
-Pure function that produces HexJSON from configuration.
+### Seeded Random Generator
 
 ```typescript
-import { createSeededRandom } from './random';
-import type { MapConfig, HexJSON, HexData, TerrainType } from '../types';
+// lib/random.ts
 
-export function generateMap(config: MapConfig): HexJSON {
-  const random = createSeededRandom(config.seed);
-  const hexes: Record<string, HexData> = {};
-  
-  // Build terrain probability ranges from weights
-  const terrainRanges = buildTerrainRanges(config.terrainWeights);
-  
-  for (let q = 0; q < config.columns; q++) {
-    for (let r = 0; r < config.rows; r++) {
-      const id = `${q}-${r}`;
-      const terrain = pickTerrain(random(), terrainRanges);
-      const elevation = config.elevationEnabled && random() < config.elevationProbability
-        ? randomElevation(random, config.elevationRange)
-        : 0;
-      
-      hexes[id] = {
-        q,
-        r,
-        n: formatCoordinate(q, r),  // "A1", "B2", etc.
-        terrain,
-        elevation,
-        class: `terrain-${terrain}`,
-      };
-    }
-  }
-  
-  return {
-    layout: config.layout,
-    hexes,
-  };
-}
-
-function buildTerrainRanges(weights: Record<TerrainType, number>) {
-  const ranges: Array<{ terrain: TerrainType; max: number }> = [];
-  let cumulative = 0;
-  
-  for (const [terrain, weight] of Object.entries(weights)) {
-    cumulative += weight;
-    ranges.push({ terrain: terrain as TerrainType, max: cumulative });
-  }
-  
-  return ranges;
-}
-
-function pickTerrain(
-  roll: number, 
-  ranges: Array<{ terrain: TerrainType; max: number }>
-): TerrainType {
-  for (const { terrain, max } of ranges) {
-    if (roll < max) return terrain;
-  }
-  return 'open';  // Fallback
-}
-
-function formatCoordinate(q: number, r: number): string {
-  const col = String.fromCharCode(65 + (q % 26));  // A-Z
-  const row = r + 1;
-  return `${col}${row}`;
-}
-```
-
-### Random.ts — Seeded PRNG
-
-Allows reproducible map generation from a seed string.
-
-```typescript
-// Simple mulberry32 PRNG - fast and good enough for terrain distribution
 export function createSeededRandom(seed: string): () => number {
-  let h = hashString(seed);
+  let h = hashString(seed || String(Date.now()));
   
-  return function() {
+  return function mulberry32() {
     h |= 0;
     h = h + 0x6D2B79F5 | 0;
     let t = Math.imul(h ^ h >>> 15, 1 | h);
@@ -955,381 +1088,74 @@ function hashString(str: string): number {
 }
 ```
 
----
+### Hex Coordinate Utilities
 
-## Print Styles
+```typescript
+// lib/hexmath.ts
 
-```css
-/* styles/print.css */
-
-@media print {
-  /* Hide all UI elements */
-  aside,
-  button,
-  header,
-  footer,
-  .no-print,
-  .control-panel {
-    display: none !important;
-  }
-
-  /* Reset page to clean slate */
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: white !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  /* Map container fills the page */
-  .map-container {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    box-shadow: none;
-    page-break-inside: avoid;
-  }
-
-  /* SVG fills container */
-  #hex-map {
-    width: 100%;
-    height: auto;
-  }
-
-  /* Crisp vector rendering */
-  svg {
-    shape-rendering: geometricPrecision;
-  }
-
-  /* Hex outlines - consistent black stroke */
-  .hex path {
-    stroke: #000 !important;
-    stroke-width: 0.4mm !important;
-  }
-
-  /* Ensure patterns print in pure black */
-  pattern path {
-    stroke: #000 !important;
-  }
+/**
+ * Convert q,r coordinates to display label (A1, B2, etc.)
+ */
+export function coordToLabel(q: number, r: number): string {
+  // Handle columns beyond Z (AA, AB, etc.) for future larger maps
+  let col = '';
+  let qTemp = q;
+  do {
+    col = String.fromCharCode(65 + (qTemp % 26)) + col;
+    qTemp = Math.floor(qTemp / 26) - 1;
+  } while (qTemp >= 0);
   
-  pattern circle {
-    fill: #000 !important;
-  }
+  const row = r + 1;
+  return `${col}${row}`;
+}
 
-  /* Labels - small, legible, black */
-  .hex-label {
-    fill: #000 !important;
-    font-family: Arial, sans-serif !important;
-  }
-
-  /* Remove any background colors from hexes */
-  .terrain-open path {
-    fill: white !important;
+/**
+ * Get the 6 neighboring hex coordinates for a given hex
+ */
+export function getNeighbors(q: number, r: number): Array<{ q: number; r: number }> {
+  // Odd-q offset coordinate neighbors
+  const isOddColumn = q % 2 === 1;
+  
+  if (isOddColumn) {
+    return [
+      { q: q + 1, r: r },     // East
+      { q: q + 1, r: r + 1 }, // Southeast
+      { q: q, r: r + 1 },     // South (down)
+      { q: q - 1, r: r + 1 }, // Southwest
+      { q: q - 1, r: r },     // West
+      { q: q, r: r - 1 },     // North (up)
+    ];
+  } else {
+    return [
+      { q: q + 1, r: r - 1 }, // Northeast
+      { q: q + 1, r: r },     // East
+      { q: q, r: r + 1 },     // South (down)
+      { q: q - 1, r: r },     // Southwest
+      { q: q - 1, r: r - 1 }, // Northwest
+      { q: q, r: r - 1 },     // North (up)
+    ];
   }
 }
 
-/* Page configuration */
-@page {
-  size: letter portrait;
-  margin: 0.2in;
+/**
+ * Calculate hex distance between two hexes
+ */
+export function hexDistance(q1: number, r1: number, q2: number, r2: number): number {
+  // Convert offset to cube coordinates for distance calculation
+  const cube1 = offsetToCube(q1, r1);
+  const cube2 = offsetToCube(q2, r2);
+  
+  return Math.max(
+    Math.abs(cube1.x - cube2.x),
+    Math.abs(cube1.y - cube2.y),
+    Math.abs(cube1.z - cube2.z)
+  );
 }
 
-/* A4 variant - can be toggled via class on body */
-body.print-a4 @page {
-  size: A4 portrait;
-  margin: 0.2in;
+function offsetToCube(q: number, r: number): { x: number; y: number; z: number } {
+  const x = q;
+  const z = r - (q - (q & 1)) / 2;
+  const y = -x - z;
+  return { x, y, z };
 }
 ```
-
-### Screen Preview Styles (London 1895 Inspired)
-
-```css
-/* styles/map.css */
-
-/* Preview container - parchment aesthetic */
-.map-preview {
-  font-family: "Times New Roman", Georgia, serif;
-  background-color: #fdf4d6;
-  padding: 1rem;
-}
-
-/* Hex styling */
-.map-preview .hex path {
-  stroke: #656058;
-  stroke-width: 2px;
-  transition: transform 0.15s ease, stroke-width 0.15s ease;
-}
-
-/* Terrain fills reference patterns */
-.map-preview .terrain-open path {
-  fill: #fdf4d6;
-}
-
-.map-preview .terrain-cover path {
-  fill: url(#pattern-cover);
-}
-
-.map-preview .terrain-difficult path {
-  fill: url(#pattern-difficult);
-}
-
-.map-preview .terrain-impassable path {
-  fill: url(#pattern-impassable);
-}
-
-.map-preview .terrain-dangerous path {
-  fill: url(#pattern-dangerous);
-}
-
-/* Labels */
-.map-preview .hex-label {
-  font-weight: 700;
-  fill: #656058;
-  font-size: 0.6em;
-  text-shadow: 
-    1px 1px 0 #fdf4d6,
-    -1px 1px 0 #fdf4d6,
-    -1px -1px 0 #fdf4d6,
-    1px -1px 0 #fdf4d6;
-}
-
-/* Hover state for interactivity */
-.map-preview .hex.hover path {
-  stroke-width: 3px;
-  stroke: #333;
-}
-
-.map-preview .hex.hover .hex-label {
-  fill: #333;
-}
-```
-
----
-
-## References
-
-- [oi.hexmap.js Documentation](https://open-innovations.github.io/oi.hexmap.js/) — Library examples and API
-- [oi.hexmap.js Repository](https://github.com/open-innovations/oi.hexmap.js) — Source code (cloned to `oi.hexmap.js/`)
-- [HexJSON Format Specification](https://open-innovations.org/projects/hexmaps/hexjson) — Data format for hex layouts
-- [One Page Rules](https://onepagerules.com/) — OPR terrain and game mechanics
-- [Red Blob Games - Hexagonal Grids](https://www.redblobgames.com/grids/hexagons/) — Comprehensive hex math reference
-- [Preact Documentation](https://preactjs.com/) — Lightweight React alternative
-- [Vite Documentation](https://vitejs.dev/) — Build tool and dev server
-- [Tailwind CSS Documentation](https://tailwindcss.com/) — Utility-first CSS framework
-
----
-
-## Glossary
-
-| Term | Definition |
-|------|------------|
-| **Flat-topped hex** | Hexagon orientation where two edges are horizontal (top and bottom are flat) |
-| **Pointy-topped hex** | Hexagon orientation where two vertices point up and down |
-| **odd-q** | Coordinate system for flat-topped hexes where odd columns are offset |
-| **q, r** | Axial coordinates for hex position (q = column, r = row) |
-| **HexJSON** | JSON format for describing hex layouts, used by oi.hexmap.js |
-| **Seed** | String used to initialize random number generator for reproducible results |
-| **PRNG** | Pseudo-random number generator — produces deterministic "random" sequence from seed |
-| **OPR** | One Page Rules — tabletop wargaming ruleset |
-| **Control point** | Objective marker on the map that players compete to hold |
-| **Deployment zone** | Area where players place units at game start |
-
----
-
-## oi.hexmap.js Quick Reference
-
-### Loading the Library
-
-The library is loaded via script tag in `index.html` (not bundled):
-
-```html
-<script src="/lib/oi.hexmap.min.js"></script>
-```
-
-This exposes the global `OI` object with `OI.hexmap` constructor and `OI.ready` helper.
-
-### Basic Usage
-
-```javascript
-// Wait for DOM ready
-OI.ready(function() {
-  // Create hexmap attached to a container element
-  const map = new OI.hexmap(document.getElementById('map'), {
-    hexjson: { layout: 'odd-q', hexes: { ... } },
-    ready: function() {
-      // Called after map is rendered
-      this.updateColours(region => '#ff0000');
-    }
-  });
-});
-```
-
-### Key Methods
-
-| Method | Purpose |
-|--------|---------|
-| `updateColours(fn)` | Set fill color/pattern for each hex. `fn(regionId) → color string` |
-| `updateLabels(labelKey, tooltipKey)` | Change which HexJSON property is used for labels |
-| `updateBoundaries(fn)` | Style boundary lines. `fn(name, props) → style object` |
-| `on(event, callback)` | Add event listener: `'mouseover'`, `'mouseout'`, `'click'` |
-| `setClass(fn)` | Add CSS classes to hexes. `fn(regionId, area) → void` |
-
-### HexJSON Structure
-
-```javascript
-{
-  "layout": "odd-q",           // Coordinate system
-  "hexes": {
-    "unique-id": {
-      "q": 0,                  // Column (required)
-      "r": 0,                  // Row (required)
-      "n": "Label",            // Display name
-      "class": "terrain-open", // CSS class(es)
-      // ... any custom properties
-    }
-  },
-  "boundaries": {              // Optional edge lines
-    "border-name": {
-      "edges": [
-        { "q": 0, "r": 0, "e": 1 }  // e = edge number 1-6
-      ]
-    }
-  }
-}
-```
-
-### Pattern Integration
-
-Patterns are passed as an array of SVG strings:
-
-```javascript
-new OI.hexmap(el, {
-  hexjson: data,
-  patterns: [
-    '<pattern id="my-pattern" ...>...</pattern>'
-  ],
-  ready() {
-    this.updateColours(r => 'url(#my-pattern)');
-  }
-});
-```
-
----
-
-## License
-
-Project code: MIT License
-oi.hexmap.js: MIT License (ODI Leeds, 2021)
-
----
-
-## Appendix: London 1895 Complete Example
-
-For reference, here is the complete London 1895 example from oi.hexmap.js that inspired our visual design:
-
-```html
-<style>
-  #ex4 figure { 
-    font-family: "Times New Roman", serif; 
-    background-color: #fdf4d6; 
-    padding: 2rem; 
-    position: relative; 
-    color: #656058; 
-  }
-  #ex4 figcaption { margin-top: 2em; text-align: center; }
-  
-  #hexmap4 { 
-    border-radius: 100%; 
-    border: 4px solid #656058; 
-    padding: 2em;
-    aspect-ratio: 1 / 1; 
-    position: relative; 
-    margin: auto; 
-  }
-  
-  #hexmap4 tspan.name { 
-    font-family: "Arial Black", "Copperplate Gothic Bold", "Times New Roman", serif; 
-  }
-  
-  #hexmap4 .hex path { 
-    stroke: #656058; 
-    stroke-width: 3px; 
-    color: inherit; 
-  }
-  
-  #hexmap4 .hex-label .id, 
-  #hexmap4 .hex-label .name { 
-    font-weight: 700; 
-    fill: #656058; 
-    text-shadow: 3px 3px 2px #fdf4d6, -3px 3px 1px #fdf4d6, 
-                 -3px -3px 1px #fdf4d6, 3px -3px 2px #fdf4d6; 
-  }
-  
-  #hexmap4 .hex .hex-label { stroke-width: 0; transform: scale(0.3); }
-  #hexmap4 .hex.big .hex-label { transform: scale(0.6); }
-  #hexmap4 .hex.hover .hex-label { transform: scale(0.4); }
-  #hexmap4 .hex.big.hover .hex-label { transform: scale(0.9); }
-  
-  #hexmap4 .hex-label .id { font-size: 250%; font-family: "Times New Roman", serif; }
-  #hexmap4 .hex-label .name { font-size: 1.3em; text-transform: uppercase; }
-  
-  #hexmap4 .hex.hover path { transform: scale(1.2); stroke-width: 4px; stroke: black; }
-  #hexmap4 .hex.hover .id, 
-  #hexmap4 .hex.hover .name { text-shadow: none; fill: #fdf4d6; }
-  
-  #hexmap4 .data-layer .hex path { fill: #fdf4d6 !important; }
-  #hexmap4 .data-layer .hex.hover path { fill: #656058 !important; }
-  #hexmap4 .data-layer .vertical path { fill: url(#verticalHatch) !important; }
-  #hexmap4 .data-layer .horizontal path { fill: url(#horizontalHatch) !important; }
-</style>
-
-<script>
-OI.ready(function(){
-  hex = new OI.hexmap(document.getElementById('hexmap4'), {
-    hexjson: {
-      "layout": "odd-q",
-      "hexes": {
-        "A": {"n":"1a", "q":0, "r":3, "label":"Horn<br>sey", "class":"horizontal"},
-        "B": {"n":"2a", "q":1, "r":2, "label":"Hack<br>ney", "class":"horizontal"},
-        // ... more hexes
-        "S": {"n":"", "q":0, "r":1, "label":"The<br><tspan class='capital'>City</tspan>", "class":"big"}
-      }
-    },
-    patterns: [
-      '<pattern id="verticalHatch" patternUnits="userSpaceOnUse" width="8" height="8">' +
-        '<path d="M0,0 l0,8 M4,0 l0,8" style="stroke:#656058;stroke-width:8;opacity:0.3;" />' +
-      '</pattern>',
-      '<pattern id="horizontalHatch" patternUnits="userSpaceOnUse" width="8" height="8">' +
-        '<path d="M0,0 l8,0 M0,4 l8,0" style="stroke:#656058;stroke-width:8;opacity:0.3;" />' +
-      '</pattern>'
-    ],
-    label: {
-      show: true,
-      format: function(txt, attr) {
-        let tspans = '';
-        let lines = (txt) ? [txt] : [];
-        lines = lines.concat(attr.hex.label.split(/<br ?\/?>/));
-        for (let i = 0; i < lines.length; i++) {
-          const yOffset = (i - lines.length/2 + 0.5) * (attr['font-size'] * 1.5);
-          tspans += '<tspan class="' + (txt && i==0 ? 'id' : 'name') + '" ' +
-                    'y="' + yOffset.toFixed(3) + '" x="0">' + lines[i] + '</tspan>';
-        }
-        return tspans;
-      }
-    },
-    ready: function() {
-      // Map is rendered, can add additional logic here
-    }
-  });
-});
-</script>
-```
-
-This example demonstrates:
-- Custom CSS classes per hex (`horizontal`, `vertical`, `big`)
-- SVG patterns for fill differentiation
-- Multi-line label formatting with `<tspan>` elements
-- Hover state styling with color inversion
-- Text shadows for legibility over patterned backgrounds
