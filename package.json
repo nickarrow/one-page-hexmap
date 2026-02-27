@@ -1,0 +1,25 @@
+{
+  "name": "opr-hex-generator",
+  "version": "1.0.0",
+  "description": "OPR Hex Battle Map Generator - Procedurally generated hex maps for One Page Rules",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["opr", "hexmap", "wargame", "tabletop"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "preact": "^10.28.4"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.9.4",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.5"
+  }
+}

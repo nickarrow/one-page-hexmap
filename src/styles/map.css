@@ -1,0 +1,71 @@
+/* Map preview container - clean white for printing */
+.map-preview {
+  font-family: "Times New Roman", Georgia, serif;
+  background-color: #ffffff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Hex styling - muted stroke for subtlety */
+.map-preview .hex path {
+  stroke: #999999;
+  stroke-width: 1px;
+  transition: stroke-width 0.15s ease;
+}
+
+/* Default hex fill */
+.map-preview .data-layer .hex path {
+  fill: #ffffff;
+}
+
+/* 
+ * Terrain pattern fills - applied via CSS using !important
+ * This matches how oi.hexmap.js London 1895 example works
+ * The hex class is set in HexJSON data, CSS targets .data-layer .{class} path
+ * 
+ * Aligned with OPR rulebook terrain guidelines (lines 199-211)
+ */
+.map-preview .data-layer .terrain-barricade path { fill: url(#pattern-barricade) !important; }
+.map-preview .data-layer .terrain-building path { fill: url(#pattern-building) !important; }
+.map-preview .data-layer .terrain-field path { fill: url(#pattern-field) !important; }
+.map-preview .data-layer .terrain-forest path { fill: url(#pattern-forest) !important; }
+.map-preview .data-layer .terrain-hill path { fill: url(#pattern-hill) !important; }
+.map-preview .data-layer .terrain-waterShallow path { fill: url(#pattern-water-shallow) !important; }
+.map-preview .data-layer .terrain-waterDeep path { fill: url(#pattern-water-deep) !important; }
+.map-preview .data-layer .terrain-lava path { fill: url(#pattern-dangerous) !important; }
+.map-preview .data-layer .terrain-mountain path { fill: url(#pattern-rocks) !important; }
+.map-preview .data-layer .terrain-river path { fill: url(#pattern-water-shallow) !important; }
+.map-preview .data-layer .terrain-rubble path { fill: url(#pattern-rubble) !important; }
+.map-preview .data-layer .terrain-ruins path { fill: url(#pattern-ruins) !important; }
+.map-preview .data-layer .terrain-swamp path { fill: url(#pattern-swamp) !important; }
+.map-preview .data-layer .terrain-crater path { fill: url(#pattern-crater) !important; }
+.map-preview .data-layer .terrain-steepHill path { fill: url(#pattern-steep-hill) !important; }
+
+/* Legacy/removed terrain types - keep for backwards compatibility */
+.map-preview .data-layer .terrain-dangerous path { fill: url(#pattern-dangerous) !important; }
+.map-preview .data-layer .terrain-rocks path { fill: url(#pattern-rocks) !important; }
+
+/* Labels - need to be large since SVG is scaled down significantly */
+.map-preview .hex-label {
+  font-weight: 700;
+  fill: #333333;
+  font-size: 2.5em;
+  pointer-events: none;
+}
+
+/* Hover state */
+.map-preview .hex:hover path {
+  stroke-width: 2.5px;
+  stroke: #000;
+}
+
+.map-preview .hex:hover .hex-label {
+  fill: #000;
+}
+
+/* SVG container */
+.map-preview svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

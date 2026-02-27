@@ -1,0 +1,68 @@
+@media print {
+  /* Hide UI elements */
+  aside,
+  button,
+  header,
+  .control-panel,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset page */
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Map fills page */
+  .map-container {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    background: white !important;
+  }
+
+  .map-preview {
+    background: white !important;
+  }
+
+  /* Crisp vectors */
+  svg {
+    shape-rendering: geometricPrecision;
+  }
+
+  /* Black strokes */
+  .hex path {
+    stroke: #000 !important;
+    stroke-width: 0.4mm !important;
+  }
+
+  /* Black patterns */
+  pattern path,
+  pattern circle,
+  pattern rect {
+    stroke: #000 !important;
+    fill: #000 !important;
+  }
+
+  /* Black labels */
+  .hex-label {
+    fill: #000 !important;
+    font-family: Arial, sans-serif !important;
+  }
+
+  /* White base for open terrain */
+  .terrain-open path {
+    fill: white !important;
+  }
+}
+
+@page {
+  size: letter portrait;
+  margin: 0.2in;
+}

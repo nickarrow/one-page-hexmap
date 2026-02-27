@@ -194,36 +194,35 @@ The generator may place terrain clusters on varied elevations to create more int
 
 Rather than exposing raw terrain properties, the generator uses **presets** — named terrain types that bundle the correct OPR properties together.
 
-### MVP Terrain Presets
+### MVP Terrain Presets (OPR-Aligned)
+
+These presets are aligned with OPR rulebook guidelines (lines 199-211):
 
 | Preset | OPR Properties | LOS | Pattern Description |
 |--------|---------------|-----|---------------------|
 | **Open** | None | Clear ○ | Empty white fill |
-| **Forest** | Difficult + Cover | Partial ◧ | Organic scattered dots (tree canopy) |
-| **Ruins** | Cover + Dangerous* | Clear ○ | Broken diagonal hatch lines |
-| **Hill** | Cover + Elevated | Partial ◧ | Concentric contour arcs |
-| **Building** | Impassable + Blocking | Blocking ⬛ | Dense solid fill or tight grid |
-| **Water (Shallow)** | Difficult | Clear ○ | Horizontal wavy lines |
-| **Water (Deep)** | Impassable | Clear ○ | Dense horizontal wavy lines |
-| **Barricade** | Cover + Difficult | Clear ○ | Short perpendicular dashes |
-| **Rubble** | Difficult | Clear ○ | Random scattered small shapes |
-| **Dangerous** | Dangerous | Clear ○ | Bold X or hazard pattern |
+| **Barricade** | Cover | Clear ○ | Horizontal dash (barrier) |
+| **Building** | Impassable + Blocking | Blocking ⬛ | Solid dark fill |
+| **Field** | Difficult + Cover | Partial ◧ | Diagonal lines (crops) |
+| **Forest** | Difficult + Cover | Partial ◧ | Filled circles (tree canopy) |
+| **Hill** | Cover + Difficult (upward) | Partial ◧ | Single curved arc |
+| **Shallow Water** | Difficult | Clear ○ | Wavy horizontal lines |
+| **Deep Water** | Impassable | Clear ○ | Wavy lines + gray background |
+| **Lava** | Dangerous | Clear ○ | Bold X marks (hazard) |
+| **Mountain** | Impassable + Blocking | Blocking ⬛ | Solid with triangle texture |
+| **River** | Dangerous (rush/charge) | Clear ○ | Wavy lines |
+| **Rubble** | Difficult | Clear ○ | Rotated rectangles (debris) |
+| **Ruins** | Cover + Dangerous (rush/charge) | Clear ○ | X crosshatch |
+| **Swamp** | Difficult | Clear ○ | Straight lines + dots |
 
-*Ruins: Dangerous only when using Rush/Charge actions (noted in legend)
-
-### Additional Terrain Presets (Extended)
-
-These presets cover additional OPR terrain types for more variety:
+### Additional Terrain Presets
 
 | Preset | OPR Properties | LOS | Pattern Description |
 |--------|---------------|-----|---------------------|
-| **Field** | Difficult + Cover | Partial ◧ | Vertical line hatching (crops) |
-| **Steep Hill** | Cover + Elevated + Difficult* | Partial ◧ | Dense contour arcs |
-| **Rocks** | Impassable + Blocking | Blocking ⬛ | Irregular solid shapes |
-| **Crater** | Cover | Clear ○ | Concentric broken circles |
-| **Swamp** | Difficult | Clear ○ | Wavy lines with dots |
+| **Crater** | Cover | Clear ○ | Dashed concentric circles |
+| **Steep Hill** | Cover + Difficult (upward) | Partial ◧ | Double nested arcs |
 
-*Steep Hill: Difficult only when moving upward (noted in legend)
+Note: "Difficult (upward)" means the terrain is only difficult when moving up onto it, not when moving across or down. This is implemented as `difficult: 'upward'` in the type system.
 
 ### Multi-Hex Terrain Clusters
 
@@ -253,15 +252,17 @@ interface TerrainPreset {
   name: string;
   properties: {
     cover: boolean;
-    difficult: boolean;
+    difficult: boolean | 'upward'; // true = always, 'upward' = only when moving up (hills)
     dangerous: boolean | 'rush-charge'; // true = always, 'rush-charge' = conditional
     impassable: boolean;
     blocking: boolean;
   };
   losType: 'clear' | 'partial' | 'blocking';
-  elevation?: number; // If terrain inherently has elevation (hills)
-  pattern: string; // SVG pattern ID
+  baseElevation?: number; // If terrain inherently has elevation (hills)
+  patternId: string; // SVG pattern ID
   description: string; // For legend
+  clusterSize: { min: number; max: number }; // Hex cluster size range
+  shape: 'organic' | 'rectangular' | 'circular' | 'linear'; // Cluster growth shape
 }
 ```
 
@@ -307,6 +308,39 @@ The generator follows OPR terrain placement guidelines (rulebook lines 221-258) 
    - Clusters don't overlap (except elevation can overlay other terrain)
 6. **Elevation assignment** — Add elevation values to hills and optionally vary other terrain
 7. **Validation** — Check OPR placement rules and adjust if needed
+
+### OPR Placement Validation (Implemented)
+
+Per OPR rulebook guidelines (lines 252-257), the generator validates and fixes terrain placement:
+
+**Rule 1: No Edge-to-Edge Clear LOS**
+- Scans each row and column for blocking/partial LOS terrain
+- If a row or column has clear sightlines across the entire map, adds a forest cluster to break it
+- Implementation: `fixEdgeToEdgeLOS()` in `src/lib/generator.ts`
+
+**Rule 2: No Gaps Larger Than 6 Hexes (12" at half-scale)**
+- Uses BFS to find connected open areas
+- If any open area exceeds 6 hexes in extent, adds cover terrain (forest, ruins, rubble, or barricade) to fill the gap
+- Implementation: `fixLargeGaps()` in `src/lib/generator.ts`
+
+**Rule 3: Minimum Pathways for Unit Movement**
+- The cluster placement algorithm naturally leaves gaps between terrain
+- Blocking terrain is limited to ~50% of clusters, ensuring pathways exist
+- No active enforcement needed; validated by design
+
+### Elevation with Climbable Paths (Implemented)
+
+Per OPR climbing rules (±1 level = climbable, ±2+ = impassable):
+
+**Ramp Generation for +2 Terrain**
+- When placing steep hills (elevation +2), the generator creates adjacent +1 hexes as "ramps"
+- This ensures units can climb to elevated positions via intermediate steps
+- Implementation: `createElevationRamp()` and `ensureClimbablePath()` in `src/lib/generator.ts`
+
+**Elevation Assignment**
+- Hills get base elevation +1, steep hills get +2
+- Craters get elevation -1 (depression)
+- Small chance (1%) of scattered +1/-1 elevation on open terrain for variety
 
 ### Terrain Cluster Sizing
 
@@ -364,89 +398,52 @@ Inspired by classic hex-and-counter wargames and the London 1895 hexmap from oi.
 
 | Element | Screen Preview | Print Output |
 |---------|---------------|--------------|
-| Background | Parchment (#fdf4d6) | Pure white |
-| Hex stroke | Warm gray (#656058) | Black (#000) |
-| Patterns | Warm gray tones | Pure black |
-| Typography | Times New Roman, serif | Arial, sans-serif |
+| Background | Pure white | Pure white |
+| Hex stroke | Light gray (#999) | Black (#000) |
+| Patterns | Grayscale (#222) | Pure black |
+| Typography | System sans-serif | Arial, sans-serif |
+
+Note: The design uses grayscale throughout for optimal printing. No parchment/sepia tones.
 
 ### SVG Pattern Specifications
 
-Each terrain preset has a unique, visually distinct pattern:
+Each terrain preset has a unique, visually distinct pattern optimized for ~7.5mm hex size. Patterns use `patternUnits="userSpaceOnUse"` with 45-70 unit tiles for visibility at small sizes.
 
-```typescript
-const TERRAIN_PATTERNS = {
-  open: 'none', // White fill
-  
-  forest: `<pattern id="pattern-forest" patternUnits="userSpaceOnUse" width="6" height="6">
-    <circle cx="2" cy="2" r="1" fill="#333" opacity="0.4"/>
-    <circle cx="5" cy="4" r="0.8" fill="#333" opacity="0.3"/>
-  </pattern>`,
-  
-  ruins: `<pattern id="pattern-ruins" patternUnits="userSpaceOnUse" width="5" height="5">
-    <path d="M0,5 l3,-3 M2,5 l3,-3" stroke="#333" stroke-width="0.8" fill="none" opacity="0.5"/>
-    <path d="M4,2 l-1,1" stroke="#333" stroke-width="0.5" fill="none" opacity="0.3"/>
-  </pattern>`,
-  
-  hill: `<pattern id="pattern-hill" patternUnits="userSpaceOnUse" width="8" height="8">
-    <path d="M1,6 Q4,3 7,6" stroke="#333" stroke-width="0.6" fill="none" opacity="0.4"/>
-    <path d="M2,4 Q4,2 6,4" stroke="#333" stroke-width="0.5" fill="none" opacity="0.3"/>
-  </pattern>`,
-  
-  building: `<pattern id="pattern-building" patternUnits="userSpaceOnUse" width="3" height="3">
-    <rect width="3" height="3" fill="#333" opacity="0.7"/>
-  </pattern>`,
-  
-  waterShallow: `<pattern id="pattern-water-shallow" patternUnits="userSpaceOnUse" width="8" height="4">
-    <path d="M0,2 Q2,1 4,2 T8,2" stroke="#333" stroke-width="0.5" fill="none" opacity="0.4"/>
-  </pattern>`,
-  
-  waterDeep: `<pattern id="pattern-water-deep" patternUnits="userSpaceOnUse" width="6" height="3">
-    <path d="M0,1.5 Q1.5,0.5 3,1.5 T6,1.5" stroke="#333" stroke-width="0.7" fill="none" opacity="0.6"/>
-  </pattern>`,
-  
-  barricade: `<pattern id="pattern-barricade" patternUnits="userSpaceOnUse" width="4" height="4">
-    <path d="M1,0 l0,2 M3,2 l0,2" stroke="#333" stroke-width="1" fill="none" opacity="0.5"/>
-  </pattern>`,
-  
-  rubble: `<pattern id="pattern-rubble" patternUnits="userSpaceOnUse" width="6" height="6">
-    <circle cx="1" cy="2" r="0.6" fill="#333" opacity="0.4"/>
-    <circle cx="4" cy="1" r="0.4" fill="#333" opacity="0.3"/>
-    <circle cx="3" cy="4" r="0.5" fill="#333" opacity="0.35"/>
-    <circle cx="5" cy="5" r="0.3" fill="#333" opacity="0.3"/>
-  </pattern>`,
-  
-  dangerous: `<pattern id="pattern-dangerous" patternUnits="userSpaceOnUse" width="5" height="5">
-    <path d="M1,1 l3,3 M4,1 l-3,3" stroke="#333" stroke-width="0.8" fill="none" opacity="0.5"/>
-  </pattern>`,
-  
-  // Extended presets
-  field: `<pattern id="pattern-field" patternUnits="userSpaceOnUse" width="4" height="6">
-    <path d="M2,0 l0,6" stroke="#333" stroke-width="0.6" fill="none" opacity="0.35"/>
-  </pattern>`,
-  
-  steepHill: `<pattern id="pattern-steep-hill" patternUnits="userSpaceOnUse" width="6" height="6">
-    <path d="M0.5,5 Q3,1 5.5,5" stroke="#333" stroke-width="0.7" fill="none" opacity="0.5"/>
-    <path d="M1,3.5 Q3,1 5,3.5" stroke="#333" stroke-width="0.6" fill="none" opacity="0.4"/>
-    <path d="M1.5,2 Q3,0.5 4.5,2" stroke="#333" stroke-width="0.5" fill="none" opacity="0.3"/>
-  </pattern>`,
-  
-  rocks: `<pattern id="pattern-rocks" patternUnits="userSpaceOnUse" width="4" height="4">
-    <rect width="4" height="4" fill="#333" opacity="0.6"/>
-    <circle cx="1" cy="1" r="0.5" fill="#fff" opacity="0.3"/>
-  </pattern>`,
-  
-  crater: `<pattern id="pattern-crater" patternUnits="userSpaceOnUse" width="8" height="8">
-    <circle cx="4" cy="4" r="3" stroke="#333" stroke-width="0.5" fill="none" opacity="0.4" stroke-dasharray="1,1"/>
-    <circle cx="4" cy="4" r="1.5" stroke="#333" stroke-width="0.4" fill="none" opacity="0.3"/>
-  </pattern>`,
-  
-  swamp: `<pattern id="pattern-swamp" patternUnits="userSpaceOnUse" width="8" height="6">
-    <path d="M0,3 Q2,2 4,3 T8,3" stroke="#333" stroke-width="0.4" fill="none" opacity="0.35"/>
-    <circle cx="2" cy="1" r="0.4" fill="#333" opacity="0.3"/>
-    <circle cx="6" cy="5" r="0.3" fill="#333" opacity="0.25"/>
-  </pattern>`,
-};
+#### Pattern Visual Language
+
+| Pattern | Shape | Meaning | Distinct Feature |
+|---------|-------|---------|------------------|
+| Forest | Filled circles | Tree canopy from above | Only terrain with large circles |
+| Rubble | Rotated rectangles | Angular debris | Only terrain with squares |
+| Ruins | X crosshatch | Crumbling walls | Bold diagonal cross |
+| Building | Solid dark fill | Impassable structure | Darkest solid (#1a1a1a) |
+| Mountain | Solid with triangle | Impassable rock | Dark solid with subtle texture |
+| Hill | Single curved arc | Elevation contour | One arc, open at bottom |
+| Steep Hill | Double nested arcs | Higher elevation | Multiple arcs vs single |
+| Field | Diagonal lines | Crop rows | Diagonal vs horizontal |
+| Barricade | Horizontal dash | Barrier segment | Thick horizontal line |
+| Shallow Water | Wavy lines | Water movement | Wavy horizontal |
+| Deep Water | Wavy + gray bg | Deeper water | Gray background |
+| Swamp | Straight line + dots | Murky water + vegetation | Straight (not wavy) + dots |
+| Crater | Dashed circles | Impact depression | Only dashed circular lines |
+| Lava/Dangerous | Bold X marks | Universal hazard | Clear danger indication |
+
+#### Pattern Implementation
+
+Patterns are defined in `src/lib/patterns.ts` and applied via CSS in `src/styles/map.css` using `!important` overrides (following the oi.hexmap.js London 1895 example approach).
+
+```css
+/* Example pattern application */
+.terrain-forest path {
+  fill: url(#pattern-forest) !important;
+}
 ```
+
+Key implementation details:
+- Base color: `#ffffff` (white background)
+- Stroke color: `#222222` (dark gray for printing)
+- Pattern tile sizes: 45-70 units for visibility at 7.5mm hex size
+- Opacity: 0.35-0.6 for subtle but visible patterns
 
 ### Hex Labels
 
@@ -560,7 +557,7 @@ opr-hex-generator/
 // Terrain property flags
 interface TerrainProperties {
   cover: boolean;
-  difficult: boolean;
+  difficult: boolean | 'upward'; // true = always, 'upward' = only when moving up
   dangerous: boolean | 'rush-charge';
   impassable: boolean;
   blocking: boolean;
@@ -576,19 +573,20 @@ interface TerrainPreset {
   properties: TerrainProperties;
   losType: LOSType;
   baseElevation?: number;
-  pattern: string;
+  patternId: string;
   description: string;
+  clusterSize: { min: number; max: number };
+  shape: 'organic' | 'rectangular' | 'circular' | 'linear';
 }
 
 // Individual hex data
 interface HexData {
   q: number;                    // Column
   r: number;                    // Row
-  id: string;                   // Unique identifier "q-r"
-  coordinate: string;           // Display label "A1", "B2"
+  n: string;                    // Display name (tooltip: "Terrain | Elev +X | Coord")
   terrain: string;              // Preset ID
   elevation: number;            // Height level
-  metadata?: Record<string, unknown>; // Future extensibility
+  class?: string;               // CSS class for pattern application
 }
 
 // Generation configuration
@@ -613,16 +611,12 @@ interface DisplayConfig {
   showElevation: boolean;
   showTitle: boolean;
   title: string;
-  legendPosition: 'none' | 'corner' | 'separate';
 }
 
 // HexJSON format (oi.hexmap.js)
 interface HexJSON {
   layout: 'odd-q' | 'even-q' | 'odd-r' | 'even-r';
   hexes: Record<string, HexData>;
-  boundaries?: Record<string, {
-    edges: Array<{ q: number; r: number; e: number }>;
-  }>;
 }
 ```
 
@@ -723,16 +717,17 @@ const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
 
 ## Feature Roadmap
 
-### Phase 1: Core Generation (MVP)
-- [ ] Project scaffolding (Vite + Preact + Tailwind + TypeScript)
-- [ ] oi.hexmap.js integration with TypeScript declarations
-- [ ] Terrain preset definitions with correct OPR properties
-- [ ] SVG patterns for all terrain types
-- [ ] Seeded random number generator
-- [ ] Basic procedural generation (terrain placement)
-- [ ] OPR placement rule validation (gaps, LOS blocking)
-- [ ] Basic UI: map display + regenerate button
-- [ ] Elevation system (2" per level, ±1 climbable)
+### Phase 1: Core Generation (MVP) ✅ COMPLETE
+- [x] Project scaffolding (Vite + Preact + Tailwind + TypeScript)
+- [x] oi.hexmap.js integration with TypeScript declarations
+- [x] Terrain preset definitions with correct OPR properties
+- [x] SVG patterns for all terrain types
+- [x] Seeded random number generator
+- [x] Basic procedural generation (terrain placement)
+- [x] OPR placement rule validation (gaps, LOS blocking)
+- [x] Basic UI: map display + regenerate button
+- [x] Elevation system (2" per level, ±1 climbable)
+- [x] Hover tooltips showing "Terrain Name | Elev +X | Coordinate"
 
 ### Phase 2: Controls & Configuration
 - [ ] Terrain density slider
