@@ -84,22 +84,27 @@ export const PRESET_LABELS: Record<GenerationPreset, string> = {
  */
 export const THEME_TERRAIN_IDS: Record<TerrainTheme, string[]> = {
   balanced: [
-    'barricade', 'building', 'field', 'forest', 'hill', 'waterShallow',
-    'waterDeep', 'lava', 'mountain', 'river', 'rubble', 'ruins',
-    'swamp', 'crater', 'steepHill', 'tower',
+    'barricade',
+    'building',
+    'field',
+    'forest',
+    'hill',
+    'waterShallow',
+    'waterDeep',
+    'lava',
+    'mountain',
+    'river',
+    'rubble',
+    'ruins',
+    'swamp',
+    'crater',
+    'steepHill',
+    'tower',
   ],
-  urban: [
-    'barricade', 'building', 'rubble', 'ruins', 'crater', 'tower',
-  ],
-  wilderness: [
-    'field', 'forest', 'hill', 'waterShallow', 'river', 'swamp', 'steepHill',
-  ],
-  wasteland: [
-    'crater', 'mountain', 'rubble', 'ruins', 'lava', 'barricade',
-  ],
-  deathWorld: [
-    'forest', 'steepHill', 'swamp', 'lava', 'waterDeep', 'mountain',
-  ],
+  urban: ['barricade', 'building', 'rubble', 'ruins', 'crater', 'tower'],
+  wilderness: ['field', 'forest', 'hill', 'waterShallow', 'river', 'swamp', 'steepHill'],
+  wasteland: ['crater', 'mountain', 'rubble', 'ruins', 'lava', 'barricade'],
+  deathWorld: ['forest', 'steepHill', 'swamp', 'lava', 'waterDeep', 'mountain'],
 };
 
 export const THEME_LABELS: Record<TerrainTheme, string> = {

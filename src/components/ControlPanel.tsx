@@ -50,7 +50,9 @@ export function ControlPanel({
       <Section title="Theme" subtitle="What terrain types appear">
         <select
           value={generatorConfig.theme}
-          onChange={(e) => onGeneratorChange({ theme: (e.target as HTMLSelectElement).value as TerrainTheme })}
+          onChange={(e) =>
+            onGeneratorChange({ theme: (e.target as HTMLSelectElement).value as TerrainTheme })
+          }
           class="w-full px-2 py-1.5 text-sm border rounded"
         >
           {themes.map((theme) => (
@@ -65,7 +67,9 @@ export function ControlPanel({
       <Section title="Preset" subtitle="How much terrain">
         <select
           value={generatorConfig.preset}
-          onChange={(e) => onPresetChange((e.target as HTMLSelectElement).value as GenerationPreset)}
+          onChange={(e) =>
+            onPresetChange((e.target as HTMLSelectElement).value as GenerationPreset)
+          }
           class="w-full px-2 py-1.5 text-sm border rounded"
         >
           {presets.map((preset) => (
@@ -94,14 +98,16 @@ export function ControlPanel({
           min={0.2}
           max={1}
           step={0.1}
-          format={(v) => v < 0.4 ? 'Small' : v < 0.7 ? 'Medium' : 'Large'}
+          format={(v) => (v < 0.4 ? 'Small' : v < 0.7 ? 'Medium' : 'Large')}
         />
         <Slider
           label="LOS Blocking"
           value={generatorConfig.terrainMix.blocking}
-          onChange={(v) => onGeneratorChange({ 
-            terrainMix: { ...generatorConfig.terrainMix, blocking: v } 
-          })}
+          onChange={(v) =>
+            onGeneratorChange({
+              terrainMix: { ...generatorConfig.terrainMix, blocking: v },
+            })
+          }
           min={0.1}
           max={0.8}
           step={0.05}
@@ -110,9 +116,11 @@ export function ControlPanel({
         <Slider
           label="Cover"
           value={generatorConfig.terrainMix.cover}
-          onChange={(v) => onGeneratorChange({ 
-            terrainMix: { ...generatorConfig.terrainMix, cover: v } 
-          })}
+          onChange={(v) =>
+            onGeneratorChange({
+              terrainMix: { ...generatorConfig.terrainMix, cover: v },
+            })
+          }
           min={0}
           max={0.6}
           step={0.05}
@@ -121,9 +129,11 @@ export function ControlPanel({
         <Slider
           label="Difficult"
           value={generatorConfig.terrainMix.difficult}
-          onChange={(v) => onGeneratorChange({ 
-            terrainMix: { ...generatorConfig.terrainMix, difficult: v } 
-          })}
+          onChange={(v) =>
+            onGeneratorChange({
+              terrainMix: { ...generatorConfig.terrainMix, difficult: v },
+            })
+          }
           min={0}
           max={0.6}
           step={0.05}
@@ -132,13 +142,15 @@ export function ControlPanel({
         <Slider
           label="Dangerous"
           value={generatorConfig.terrainMix.dangerous}
-          onChange={(v) => onGeneratorChange({ 
-            terrainMix: { ...generatorConfig.terrainMix, dangerous: v } 
-          })}
+          onChange={(v) =>
+            onGeneratorChange({
+              terrainMix: { ...generatorConfig.terrainMix, dangerous: v },
+            })
+          }
           min={0}
           max={0.4}
           step={0.05}
-          format={(v) => v === 0 ? 'None' : `${Math.round(v * 100)}%`}
+          format={(v) => (v === 0 ? 'None' : `${Math.round(v * 100)}%`)}
         />
       </Section>
 
@@ -167,7 +179,7 @@ export function ControlPanel({
               min={0}
               max={1}
               step={0.1}
-              format={(v) => v < 0.3 ? 'Low' : v < 0.7 ? 'Medium' : 'High'}
+              format={(v) => (v < 0.3 ? 'Low' : v < 0.7 ? 'Medium' : 'High')}
             />
           </>
         )}
@@ -184,6 +196,11 @@ export function ControlPanel({
           label="Show elevation labels"
           checked={displayConfig.showElevation}
           onChange={(checked) => onDisplayChange({ ...displayConfig, showElevation: checked })}
+        />
+        <Toggle
+          label="Show contour lines"
+          checked={displayConfig.showContours}
+          onChange={(checked) => onDisplayChange({ ...displayConfig, showContours: checked })}
         />
       </Section>
 
@@ -208,13 +225,13 @@ export function ControlPanel({
 // Helper Components
 // =============================================================================
 
-function Section({ 
-  title, 
-  subtitle, 
-  children 
-}: { 
-  title: string; 
-  subtitle?: string; 
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
   children: preact.ComponentChildren;
 }) {
   return (

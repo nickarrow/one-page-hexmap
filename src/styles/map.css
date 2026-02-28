@@ -90,6 +90,16 @@
   pointer-events: none;
 }
 
+/* =============================================================================
+   ELEVATION CONTOUR LINES - Topographic style
+   Inner hex outlines are added via JavaScript post-processing
+   ============================================================================= */
+
+/* Contour line styling */
+.map-preview .contour-line {
+  pointer-events: none;
+}
+
 /* Hover state */
 .map-preview .hex:hover path {
   stroke-width: 2.5px;

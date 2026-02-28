@@ -63,6 +63,7 @@ export interface GeneratorConfig {
 export interface DisplayConfig {
   showCoordinates: boolean;
   showElevation: boolean;
+  showContours: boolean;
   showTitle: boolean;
   title: string;
 }

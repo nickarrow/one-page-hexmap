@@ -28,6 +28,7 @@ const DEFAULT_GENERATOR_CONFIG: GeneratorConfig = {
 const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
   showCoordinates: false,
   showElevation: true,
+  showContours: true,
   showTitle: false,
   title: 'Battle Map',
 };
@@ -39,7 +40,7 @@ export function App() {
   const handleGeneratorChange = useCallback((updates: Partial<GeneratorConfig>) => {
     setGeneratorConfig((prev) => {
       const newConfig = { ...prev, ...updates };
-      
+
       // If any slider value changed, switch to custom preset
       if (
         updates.density !== undefined ||
@@ -49,23 +50,23 @@ export function App() {
         // Check if values still match current preset
         const presetValues = GENERATION_PRESETS[prev.preset];
         if (presetValues) {
-          const mixChanged = updates.terrainMix && (
-            updates.terrainMix.blocking !== presetValues.terrainMix.blocking ||
-            updates.terrainMix.cover !== presetValues.terrainMix.cover ||
-            updates.terrainMix.difficult !== presetValues.terrainMix.difficult ||
-            updates.terrainMix.dangerous !== presetValues.terrainMix.dangerous
-          );
-          const densityChanged = updates.density !== undefined && 
-            updates.density !== presetValues.density;
-          const pieceSizeChanged = updates.pieceSize !== undefined &&
-            updates.pieceSize !== presetValues.pieceSize;
-          
+          const mixChanged =
+            updates.terrainMix &&
+            (updates.terrainMix.blocking !== presetValues.terrainMix.blocking ||
+              updates.terrainMix.cover !== presetValues.terrainMix.cover ||
+              updates.terrainMix.difficult !== presetValues.terrainMix.difficult ||
+              updates.terrainMix.dangerous !== presetValues.terrainMix.dangerous);
+          const densityChanged =
+            updates.density !== undefined && updates.density !== presetValues.density;
+          const pieceSizeChanged =
+            updates.pieceSize !== undefined && updates.pieceSize !== presetValues.pieceSize;
+
           if (mixChanged || densityChanged || pieceSizeChanged) {
             newConfig.preset = 'custom';
           }
         }
       }
-      
+
       return newConfig;
     });
   }, []);
