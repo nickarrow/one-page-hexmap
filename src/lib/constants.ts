@@ -33,10 +33,27 @@ export const TERRAIN_COVERAGE = {
 } as const;
 
 /**
- * Maximum gap between terrain pieces in hexes.
- * OPR: "no gap larger than 12 inches" = 6 hexes at half-scale.
+ * Gap and passage constraints in hexes.
+ *
+ * IMPORTANT: These values are NOT halved for half-scale play.
+ * While distances for movement/range are halved, physical unit bases remain
+ * the same size. A gap that fits a 40mm base on a full table still needs to
+ * fit that same 40mm base on a half table.
  */
-export const MAX_TERRAIN_GAP_HEXES = 6;
+
+/**
+ * Maximum gap between terrain pieces in hexes.
+ * OPR: "no gap larger than 12 inches" — keeps terrain distributed across table.
+ */
+export const MAX_TERRAIN_GAP_HEXES = 12;
+
+/**
+ * Minimum passage width between terrain pieces in hexes.
+ * OPR: "gaps of at least 6 inches" — ensures units can move between terrain.
+ * Currently validated by design (cluster placement naturally leaves gaps).
+ * TODO: Add active enforcement if terrain gets too dense.
+ */
+export const MIN_PASSAGE_HEXES = 6;
 
 /**
  * Minimum dangerous terrain pieces per OPR rules.

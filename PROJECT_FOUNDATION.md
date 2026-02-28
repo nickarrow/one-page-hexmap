@@ -44,6 +44,10 @@ This map system represents a **half-scale OPR table** (36" × 24"). Each hex equ
 
 This eliminates measuring disputes and speeds up play while maintaining full OPR rules compatibility.
 
+**What scales and what doesn't:**
+- Movement, range, deployment zones → Halved (game distances)
+- Terrain gaps, passage widths → NOT halved (unit bases are same physical size)
+
 ### Hex Movement Rules
 
 **Adjacent hexes:** A hex has 6 neighbors. Moving to any adjacent hex costs 1 hex of movement.
@@ -290,8 +294,8 @@ The generator follows OPR terrain placement guidelines (rulebook lines 221-258) 
 | Cover terrain | At least 33% of terrain | Weighted generation ensures mix |
 | Difficult terrain | At least 33% of terrain | Weighted generation ensures mix |
 | No edge-to-edge LOS | Can't see straight across | Algorithm validates and adjusts |
-| Max gap between terrain | 12" (6 hexes at half-scale) | Algorithm ensures no large empty zones |
-| Min gap for unit passage | 6" (3 hexes at half-scale) | Algorithm ensures pathways exist |
+| Max gap between terrain | 12" | Algorithm ensures no large empty zones |
+| Min gap for unit passage | 6" | Algorithm ensures pathways exist |
 
 ### Generation Algorithm
 
@@ -319,9 +323,10 @@ Per OPR rulebook guidelines (lines 252-257), the generator validates and fixes t
 - If a row or column has clear sightlines across the entire map, adds a forest cluster to break it
 - Implementation: `fixEdgeToEdgeLOS()` in `src/lib/generator.ts`
 
-**Rule 2: No Gaps Larger Than 6 Hexes (12" at half-scale)**
+**Rule 2: No Gaps Larger Than 12 Hexes**
 - Uses BFS to find connected open areas
-- If any open area exceeds 6 hexes in extent, adds cover terrain (forest, ruins, rubble, or barricade) to fill the gap
+- If any open area exceeds 12 hexes in extent, adds cover terrain (forest, ruins, rubble, or barricade) to fill the gap
+- Note: Gap limits are NOT halved — unit physical size doesn't scale with table size
 - Implementation: `fixLargeGaps()` in `src/lib/generator.ts`
 
 **Rule 3: Minimum Pathways for Unit Movement**
@@ -740,10 +745,29 @@ const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
 - [ ] Terrain density slider
 - [ ] Terrain mix sliders (blocking/cover/difficult/dangerous %)
 - [ ] Generation preset selector (Balanced/Open/Dense/Hazardous)
+- [ ] Themed terrain groupings (see below)
 - [ ] Elevation toggle
 - [ ] Coordinate label toggle
 - [ ] Seed input for reproducibility
 - [ ] "Randomize" button
+
+#### Themed Terrain Groupings
+
+Inspired by OPR's Terrain Generator planet types (rulebook Advanced Terrain section), themed presets create more coherent, believable maps by filtering terrain selection to thematically appropriate types.
+
+| Theme | Terrain Types | Feel |
+|-------|--------------|------|
+| **Balanced** | All terrain types (current behavior) | Generic battlefield |
+| **Urban** | Buildings, ruins, barricades, rubble, craters | City fight |
+| **Wilderness** | Forests, hills, fields, water (shallow), swamps | Natural landscape |
+| **Wasteland** | Craters, rocks/mountains, ruins, rubble, lava | Post-apocalyptic |
+| **Death World** | Dense forests, steep hills, swamps, lava, dangerous | Hostile planet |
+
+Implementation approach:
+- Add `theme` field to `GeneratorConfig`
+- Create terrain filter function per theme
+- Optionally add adjacency preferences (forests near water, buildings near rubble)
+- Could also weight terrain selection within themes for variety
 
 ### Phase 3: Export & Print
 - [ ] Print stylesheet with proper margins

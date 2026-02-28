@@ -16,7 +16,7 @@
  * - At least 33% provides cover
  * - At least 33% is difficult terrain
  * - No edge-to-edge clear sightlines
- * - No gaps larger than 6 hexes (12" at half-scale)
+ * - No gaps larger than 12 hexes (full-scale, not halved — unit bases don't shrink)
  */
 
 import type { GeneratorConfig, HexJSON, HexData } from '../types';
