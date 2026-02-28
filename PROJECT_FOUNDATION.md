@@ -741,15 +741,15 @@ const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
 - [x] Ruins with optional elevation (50% chance of +1)
 - [x] Enhanced elevation distribution (more +2/+3 peaks, scattered rises)
 
-### Phase 2: Controls & Configuration
-- [ ] Terrain density slider
-- [ ] Terrain mix sliders (blocking/cover/difficult/dangerous %)
-- [ ] Generation preset selector (Balanced/Open/Dense/Hazardous)
-- [ ] Themed terrain groupings (see below)
-- [ ] Elevation toggle
-- [ ] Coordinate label toggle
-- [ ] Seed input for reproducibility
-- [ ] "Randomize" button
+### Phase 2: Controls & Configuration ✅ COMPLETE
+- [x] Terrain density slider
+- [x] Terrain mix sliders (blocking/cover/difficult/dangerous %)
+- [x] Generation preset selector (Balanced/Open/Dense/Hazardous/Custom)
+- [x] Themed terrain groupings (Balanced/Urban/Wilderness/Wasteland/Death World)
+- [x] Elevation toggle with max height and variety sliders
+- [x] Coordinate label toggle
+- [x] Seed input for reproducibility (editable)
+- [x] "Randomize" button
 
 #### Themed Terrain Groupings
 
@@ -757,17 +757,17 @@ Inspired by OPR's Terrain Generator planet types (rulebook Advanced Terrain sect
 
 | Theme | Terrain Types | Feel |
 |-------|--------------|------|
-| **Balanced** | All terrain types (current behavior) | Generic battlefield |
-| **Urban** | Buildings, ruins, barricades, rubble, craters | City fight |
-| **Wilderness** | Forests, hills, fields, water (shallow), swamps | Natural landscape |
-| **Wasteland** | Craters, rocks/mountains, ruins, rubble, lava | Post-apocalyptic |
-| **Death World** | Dense forests, steep hills, swamps, lava, dangerous | Hostile planet |
+| **Balanced** | All terrain types | Generic battlefield |
+| **Urban** | Buildings, ruins, barricades, rubble, craters, towers | City fight |
+| **Wilderness** | Forests, hills, fields, water, rivers, swamps | Natural landscape |
+| **Wasteland** | Craters, mountains, ruins, rubble, lava, barricades | Post-apocalyptic |
+| **Death World** | Dense forests, steep hills, swamps, lava, deep water, mountains | Hostile planet |
 
-Implementation approach:
-- Add `theme` field to `GeneratorConfig`
-- Create terrain filter function per theme
-- Optionally add adjacency preferences (forests near water, buildings near rubble)
-- Could also weight terrain selection within themes for variety
+Implementation:
+- `theme` field in `GeneratorConfig` controls terrain filtering
+- `preset` field controls density/mix slider defaults
+- Presets auto-switch to "Custom" when sliders are manually adjusted
+- Themes and presets are orthogonal (can combine any theme with any preset)
 
 ### Phase 3: Export & Print
 - [ ] Print stylesheet with proper margins

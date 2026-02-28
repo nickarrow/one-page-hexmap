@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'preact/hooks';
+import { useRef, useEffect, useState } from 'preact/hooks';
 import { generateMap } from '../lib/generator';
 import { getAllPatterns } from '../lib/patterns';
 import { coordToLabel } from '../lib/hexmath';
@@ -12,6 +12,15 @@ interface Props {
 
 export function MapCanvas({ generatorConfig, displayConfig }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [debouncedConfig, setDebouncedConfig] = useState(generatorConfig);
+
+  // Debounce config changes to prevent rapid re-renders
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedConfig(generatorConfig);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [generatorConfig]);
 
   useEffect(() => {
     if (!containerRef.current || typeof OI === 'undefined') {
@@ -20,7 +29,7 @@ export function MapCanvas({ generatorConfig, displayConfig }: Props) {
     }
 
     // Generate HexJSON from config
-    const hexJson = generateMap(generatorConfig);
+    const hexJson = generateMap(debouncedConfig);
 
     // Clear previous instance
     containerRef.current.innerHTML = '';
@@ -55,7 +64,7 @@ export function MapCanvas({ generatorConfig, displayConfig }: Props) {
         containerRef.current.innerHTML = '';
       }
     };
-  }, [generatorConfig, displayConfig]);
+  }, [debouncedConfig, displayConfig]);
 
   return <div ref={containerRef} class="w-full h-full map-preview" id="hex-map" />;
 }

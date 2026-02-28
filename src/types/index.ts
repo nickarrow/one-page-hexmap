@@ -33,12 +33,21 @@ export interface HexData {
   class?: string; // CSS classes
 }
 
+// Terrain theme - controls WHAT terrain types are available
+export type TerrainTheme = 'balanced' | 'urban' | 'wilderness' | 'wasteland' | 'deathWorld';
+
+// Generation preset - controls HOW MUCH terrain (sets slider defaults)
+export type GenerationPreset = 'balanced' | 'open' | 'dense' | 'hazardous' | 'custom';
+
 // Generation configuration
 export interface GeneratorConfig {
   columns: number;
   rows: number;
   seed: string;
+  theme: TerrainTheme;
+  preset: GenerationPreset;
   density: number;
+  pieceSize: number; // 0-1, controls terrain piece size (small to large)
   terrainMix: {
     blocking: number;
     cover: number;
@@ -46,7 +55,8 @@ export interface GeneratorConfig {
     dangerous: number;
   };
   elevationEnabled: boolean;
-  elevationRange: { min: number; max: number };
+  elevationMax: number; // +1 to +4
+  elevationIntensity: number; // 0-1, how dramatic the elevation changes are
 }
 
 // Display options

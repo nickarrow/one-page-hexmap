@@ -350,3 +350,12 @@ export function getDangerousTerrains(): TerrainPreset[] {
 export function getPlaceableTerrains(): TerrainPreset[] {
   return Object.values(TERRAIN_PRESETS).filter((t) => t.id !== 'open');
 }
+
+/**
+ * Get placeable terrains filtered by allowed IDs (for theme filtering)
+ */
+export function getPlaceableTerrainsFiltered(allowedIds: string[]): TerrainPreset[] {
+  return Object.values(TERRAIN_PRESETS).filter(
+    (t) => t.id !== 'open' && allowedIds.includes(t.id)
+  );
+}
