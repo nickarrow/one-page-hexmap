@@ -22,6 +22,15 @@
 const BASE_COLOR = '#ffffff';
 const STROKE_COLOR = '#222222';
 
+/**
+ * Note: Some patterns intentionally use colors outside BASE_COLOR/STROKE_COLOR:
+ * - Building (#1a1a1a): Darkest solid to indicate impassable
+ * - Mountain (#2d2d2d): Slightly lighter solid with texture
+ * - Tower (#e0e0e0 bg): Light background to indicate climbable (vs solid building)
+ * - Deep Water (#d0d0d0 bg): Gray background to distinguish from shallow
+ * These variations are deliberate for visual distinction at small hex sizes.
+ */
+
 export const TERRAIN_PATTERNS: Record<string, string> = {
   // FOREST: Circles representing tree canopy from above
   // Distinct: Only terrain using large filled circles

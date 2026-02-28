@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'preact/hooks';
 import { generateMap } from '../lib/generator';
 import { getAllPatterns } from '../lib/patterns';
+import { coordToLabel } from '../lib/hexmath';
 import type { GeneratorConfig, DisplayConfig } from '../types';
 import type { LabelAttributes } from '../types/oi-hexmap';
 
@@ -36,7 +37,8 @@ export function MapCanvas({ generatorConfig, displayConfig }: Props) {
         format: (_txt: string, attr: LabelAttributes) => {
           const parts: string[] = [];
           if (displayConfig.showCoordinates) {
-            parts.push(attr.hex.n);
+            // Use coordToLabel for clean "A1" format, not the full tooltip string
+            parts.push(coordToLabel(attr.hex.q, attr.hex.r));
           }
           if (displayConfig.showElevation && attr.hex.elevation !== 0) {
             const sign = attr.hex.elevation > 0 ? '+' : '';
