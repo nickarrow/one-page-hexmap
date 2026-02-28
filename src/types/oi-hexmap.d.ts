@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { HexData, HexJSON } from './index';
 
 export interface HexmapOptions {
@@ -31,7 +30,7 @@ export interface Hexmap {
   el: HTMLElement;
   areas: Record<string, HexArea>;
   mapping: HexJSON;
-  
+
   load(file: string | HexJSON, callback?: () => void): Hexmap;
   updateColours(fn?: (region: string) => string): Hexmap;
   on(event: 'mouseover' | 'mouseout' | 'click', callback: (e: HexEvent) => void): Hexmap;

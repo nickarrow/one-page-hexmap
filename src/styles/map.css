@@ -1,6 +1,6 @@
 /* Map preview container - clean white for printing */
 .map-preview {
-  font-family: "Times New Roman", Georgia, serif;
+  font-family: 'Times New Roman', Georgia, serif;
   background-color: #ffffff;
   border-radius: 4px;
   overflow: hidden;
@@ -25,26 +25,62 @@
  * 
  * Aligned with OPR rulebook terrain guidelines (lines 199-211)
  */
-.map-preview .data-layer .terrain-barricade path { fill: url(#pattern-barricade) !important; }
-.map-preview .data-layer .terrain-building path { fill: url(#pattern-building) !important; }
-.map-preview .data-layer .terrain-field path { fill: url(#pattern-field) !important; }
-.map-preview .data-layer .terrain-forest path { fill: url(#pattern-forest) !important; }
-.map-preview .data-layer .terrain-hill path { fill: url(#pattern-hill) !important; }
-.map-preview .data-layer .terrain-waterShallow path { fill: url(#pattern-water-shallow) !important; }
-.map-preview .data-layer .terrain-waterDeep path { fill: url(#pattern-water-deep) !important; }
-.map-preview .data-layer .terrain-lava path { fill: url(#pattern-dangerous) !important; }
-.map-preview .data-layer .terrain-mountain path { fill: url(#pattern-rocks) !important; }
-.map-preview .data-layer .terrain-river path { fill: url(#pattern-water-shallow) !important; }
-.map-preview .data-layer .terrain-rubble path { fill: url(#pattern-rubble) !important; }
-.map-preview .data-layer .terrain-ruins path { fill: url(#pattern-ruins) !important; }
-.map-preview .data-layer .terrain-swamp path { fill: url(#pattern-swamp) !important; }
-.map-preview .data-layer .terrain-crater path { fill: url(#pattern-crater) !important; }
-.map-preview .data-layer .terrain-steepHill path { fill: url(#pattern-steep-hill) !important; }
-.map-preview .data-layer .terrain-tower path { fill: url(#pattern-tower) !important; }
+.map-preview .data-layer .terrain-barricade path {
+  fill: url(#pattern-barricade) !important;
+}
+.map-preview .data-layer .terrain-building path {
+  fill: url(#pattern-building) !important;
+}
+.map-preview .data-layer .terrain-field path {
+  fill: url(#pattern-field) !important;
+}
+.map-preview .data-layer .terrain-forest path {
+  fill: url(#pattern-forest) !important;
+}
+.map-preview .data-layer .terrain-hill path {
+  fill: url(#pattern-hill) !important;
+}
+.map-preview .data-layer .terrain-waterShallow path {
+  fill: url(#pattern-water-shallow) !important;
+}
+.map-preview .data-layer .terrain-waterDeep path {
+  fill: url(#pattern-water-deep) !important;
+}
+.map-preview .data-layer .terrain-lava path {
+  fill: url(#pattern-dangerous) !important;
+}
+.map-preview .data-layer .terrain-mountain path {
+  fill: url(#pattern-rocks) !important;
+}
+.map-preview .data-layer .terrain-river path {
+  fill: url(#pattern-water-shallow) !important;
+}
+.map-preview .data-layer .terrain-rubble path {
+  fill: url(#pattern-rubble) !important;
+}
+.map-preview .data-layer .terrain-ruins path {
+  fill: url(#pattern-ruins) !important;
+}
+.map-preview .data-layer .terrain-swamp path {
+  fill: url(#pattern-swamp) !important;
+}
+.map-preview .data-layer .terrain-crater path {
+  fill: url(#pattern-crater) !important;
+}
+.map-preview .data-layer .terrain-steepHill path {
+  fill: url(#pattern-steep-hill) !important;
+}
+.map-preview .data-layer .terrain-tower path {
+  fill: url(#pattern-tower) !important;
+}
 
 /* Legacy/removed terrain types - keep for backwards compatibility */
-.map-preview .data-layer .terrain-dangerous path { fill: url(#pattern-dangerous) !important; }
-.map-preview .data-layer .terrain-rocks path { fill: url(#pattern-rocks) !important; }
+.map-preview .data-layer .terrain-dangerous path {
+  fill: url(#pattern-dangerous) !important;
+}
+.map-preview .data-layer .terrain-rocks path {
+  fill: url(#pattern-rocks) !important;
+}
 
 /* Labels - need to be large since SVG is scaled down significantly */
 .map-preview .hex-label {

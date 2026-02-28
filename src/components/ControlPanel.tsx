@@ -3,7 +3,6 @@ import type { GeneratorConfig, DisplayConfig } from '../types';
 interface Props {
   generatorConfig: GeneratorConfig;
   displayConfig: DisplayConfig;
-  onGeneratorChange: (config: GeneratorConfig) => void;
   onDisplayChange: (config: DisplayConfig) => void;
   onRegenerate: () => void;
 }
@@ -17,7 +16,7 @@ export function ControlPanel({
   return (
     <aside class="w-72 bg-white shadow-lg p-4 flex flex-col gap-4 overflow-y-auto control-panel">
       <h2 class="text-lg font-semibold text-gray-800">Map Controls</h2>
-      
+
       {/* Seed display */}
       <div class="space-y-1">
         <label class="text-sm font-medium text-gray-600">Seed</label>
@@ -36,38 +35,42 @@ export function ControlPanel({
           </button>
         </div>
       </div>
-      
+
       {/* Display toggles */}
       <div class="space-y-2">
         <h3 class="text-sm font-medium text-gray-600">Display Options</h3>
-        
+
         <label class="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
             checked={displayConfig.showCoordinates}
-            onChange={(e) => onDisplayChange({
-              ...displayConfig,
-              showCoordinates: (e.target as HTMLInputElement).checked,
-            })}
+            onChange={(e) =>
+              onDisplayChange({
+                ...displayConfig,
+                showCoordinates: (e.target as HTMLInputElement).checked,
+              })
+            }
             class="rounded"
           />
           <span class="text-sm">Show Coordinates</span>
         </label>
-        
+
         <label class="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
             checked={displayConfig.showElevation}
-            onChange={(e) => onDisplayChange({
-              ...displayConfig,
-              showElevation: (e.target as HTMLInputElement).checked,
-            })}
+            onChange={(e) =>
+              onDisplayChange({
+                ...displayConfig,
+                showElevation: (e.target as HTMLInputElement).checked,
+              })
+            }
             class="rounded"
           />
           <span class="text-sm">Show Elevation</span>
         </label>
       </div>
-      
+
       {/* Regenerate button */}
       <button
         onClick={onRegenerate}
@@ -75,7 +78,7 @@ export function ControlPanel({
       >
         Generate New Map
       </button>
-      
+
       {/* Info */}
       <div class="text-xs text-gray-500 space-y-1">
         <p>36 × 24 hex grid</p>

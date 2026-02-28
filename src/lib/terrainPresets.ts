@@ -21,7 +21,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 1, max: 1 },
     shape: 'organic',
   },
-  
+
   // OPR: Barricades - Cover
   barricade: {
     id: 'barricade',
@@ -39,7 +39,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 2, max: 3 },
     shape: 'linear',
   },
-  
+
   // OPR: Buildings - Impassable + Blocking
   building: {
     id: 'building',
@@ -57,7 +57,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 2, max: 6 },
     shape: 'rectangular',
   },
-  
+
   // Tower/Watchtower - Climbable elevated structure
   // Similar to hills but man-made, provides elevated firing position
   tower: {
@@ -77,7 +77,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 1, max: 3 }, // Towers are small
     shape: 'rectangular',
   },
-  
+
   // OPR: Fields - Difficult + Cover
   field: {
     id: 'field',
@@ -95,7 +95,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 4, max: 8 },
     shape: 'rectangular',
   },
-  
+
   // OPR: Forests - Difficult + Cover + Partial LOS
   forest: {
     id: 'forest',
@@ -113,7 +113,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 4, max: 8 },
     shape: 'organic',
   },
-  
+
   // OPR: Hills - Cover + Difficult when moving up + LOS advantage
   hill: {
     id: 'hill',
@@ -132,7 +132,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 4, max: 8 },
     shape: 'circular',
   },
-  
+
   // OPR: Lakes (shallow) - Difficult
   waterShallow: {
     id: 'waterShallow',
@@ -150,7 +150,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 4, max: 10 },
     shape: 'organic',
   },
-  
+
   // OPR: Lakes (deep) - Impassable
   waterDeep: {
     id: 'waterDeep',
@@ -168,7 +168,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 4, max: 10 },
     shape: 'organic',
   },
-  
+
   // OPR: Lava - Dangerous
   lava: {
     id: 'lava',
@@ -186,7 +186,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 2, max: 4 },
     shape: 'organic',
   },
-  
+
   // OPR: Mountains - Impassable + Blocking
   mountain: {
     id: 'mountain',
@@ -204,7 +204,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 2, max: 5 },
     shape: 'circular',
   },
-  
+
   // OPR: Rivers - Dangerous when using rush/charge
   river: {
     id: 'river',
@@ -222,7 +222,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 3, max: 8 },
     shape: 'linear',
   },
-  
+
   // OPR: Rubble - Difficult
   rubble: {
     id: 'rubble',
@@ -240,7 +240,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 2, max: 4 },
     shape: 'organic',
   },
-  
+
   // OPR: Ruins - Cover + Dangerous when using rush/charge
   ruins: {
     id: 'ruins',
@@ -258,7 +258,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 3, max: 6 },
     shape: 'rectangular',
   },
-  
+
   // OPR: Swamps - Difficult (NOT dangerous per OPR)
   swamp: {
     id: 'swamp',
@@ -276,7 +276,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 4, max: 8 },
     shape: 'organic',
   },
-  
+
   // Additional: Crater (depression with cover)
   crater: {
     id: 'crater',
@@ -295,7 +295,7 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     clusterSize: { min: 2, max: 4 },
     shape: 'circular',
   },
-  
+
   // Additional: Steep Hill (higher elevation)
   steepHill: {
     id: 'steepHill',
@@ -320,33 +320,33 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
  * Get terrain presets that provide blocking LOS
  */
 export function getBlockingTerrains(): TerrainPreset[] {
-  return Object.values(TERRAIN_PRESETS).filter(t => t.properties.blocking);
+  return Object.values(TERRAIN_PRESETS).filter((t) => t.properties.blocking);
 }
 
 /**
  * Get terrain presets that provide cover
  */
 export function getCoverTerrains(): TerrainPreset[] {
-  return Object.values(TERRAIN_PRESETS).filter(t => t.properties.cover);
+  return Object.values(TERRAIN_PRESETS).filter((t) => t.properties.cover);
 }
 
 /**
  * Get terrain presets that are difficult
  */
 export function getDifficultTerrains(): TerrainPreset[] {
-  return Object.values(TERRAIN_PRESETS).filter(t => t.properties.difficult);
+  return Object.values(TERRAIN_PRESETS).filter((t) => t.properties.difficult);
 }
 
 /**
  * Get terrain presets that are dangerous
  */
 export function getDangerousTerrains(): TerrainPreset[] {
-  return Object.values(TERRAIN_PRESETS).filter(t => t.properties.dangerous);
+  return Object.values(TERRAIN_PRESETS).filter((t) => t.properties.dangerous);
 }
 
 /**
  * Get all placeable terrain types (excluding open)
  */
 export function getPlaceableTerrains(): TerrainPreset[] {
-  return Object.values(TERRAIN_PRESETS).filter(t => t.id !== 'open');
+  return Object.values(TERRAIN_PRESETS).filter((t) => t.id !== 'open');
 }

@@ -27,10 +27,10 @@ export interface TerrainPreset {
 export interface HexData {
   q: number;
   r: number;
-  n: string;           // Display name for oi.hexmap.js
-  terrain: string;     // Preset ID
+  n: string; // Display name for oi.hexmap.js
+  terrain: string; // Preset ID
   elevation: number;
-  class?: string;      // CSS classes
+  class?: string; // CSS classes
 }
 
 // Generation configuration

@@ -17,13 +17,13 @@ export function MapCanvas({ generatorConfig, displayConfig }: Props) {
       console.error('OI.hexmap not loaded');
       return;
     }
-    
+
     // Generate HexJSON from config
     const hexJson = generateMap(generatorConfig);
-    
+
     // Clear previous instance
     containerRef.current.innerHTML = '';
-    
+
     // Create hexmap
     // Patterns are applied via CSS targeting hex classes (e.g., .terrain-forest)
     // This matches how oi.hexmap.js London 1895 example works
@@ -55,11 +55,5 @@ export function MapCanvas({ generatorConfig, displayConfig }: Props) {
     };
   }, [generatorConfig, displayConfig]);
 
-  return (
-    <div 
-      ref={containerRef} 
-      class="w-full h-full map-preview"
-      id="hex-map"
-    />
-  );
+  return <div ref={containerRef} class="w-full h-full map-preview" id="hex-map" />;
 }

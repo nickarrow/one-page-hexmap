@@ -1,15 +1,26 @@
 /**
- * Seeded random number generator using mulberry32 algorithm
+ * Seeded random number generation utilities.
+ *
+ * Uses the mulberry32 algorithm for deterministic pseudo-random numbers.
+ * This allows maps to be regenerated from a seed string.
+ */
+
+/** Maximum value for 32-bit unsigned integer (2^32) */
+const UINT32_MAX = 4294967296;
+
+/**
+ * Create a seeded random number generator using mulberry32 algorithm.
+ * Returns a function that produces values in [0, 1).
  */
 export function createSeededRandom(seed: string): () => number {
   let h = hashString(seed || String(Date.now()));
-  
+
   return function mulberry32(): number {
     h |= 0;
-    h = h + 0x6D2B79F5 | 0;
-    let t = Math.imul(h ^ h >>> 15, 1 | h);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    h = (h + 0x6d2b79f5) | 0;
+    let t = Math.imul(h ^ (h >>> 15), 1 | h);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / UINT32_MAX;
   };
 }
 
@@ -26,7 +37,7 @@ export function generateSeed(): string {
 function hashString(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash = (hash << 5) - hash + str.charCodeAt(i);
     hash |= 0;
   }
   return hash;
