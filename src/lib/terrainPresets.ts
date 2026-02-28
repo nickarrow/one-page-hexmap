@@ -58,6 +58,26 @@ export const TERRAIN_PRESETS: Record<string, TerrainPreset> = {
     shape: 'rectangular',
   },
   
+  // Tower/Watchtower - Climbable elevated structure
+  // Similar to hills but man-made, provides elevated firing position
+  tower: {
+    id: 'tower',
+    name: 'Tower',
+    properties: {
+      cover: true,
+      difficult: 'upward', // Difficult to climb up
+      dangerous: false,
+      impassable: false, // Can climb onto it
+      blocking: false,
+    },
+    losType: 'partial',
+    baseElevation: 2,
+    patternId: 'pattern-tower',
+    description: 'Cover + Difficult (upward). Elevated +2. LOS advantage.',
+    clusterSize: { min: 1, max: 3 }, // Towers are small
+    shape: 'rectangular',
+  },
+  
   // OPR: Fields - Difficult + Cover
   field: {
     id: 'field',

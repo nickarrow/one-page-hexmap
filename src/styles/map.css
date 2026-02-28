@@ -40,6 +40,7 @@
 .map-preview .data-layer .terrain-swamp path { fill: url(#pattern-swamp) !important; }
 .map-preview .data-layer .terrain-crater path { fill: url(#pattern-crater) !important; }
 .map-preview .data-layer .terrain-steepHill path { fill: url(#pattern-steep-hill) !important; }
+.map-preview .data-layer .terrain-tower path { fill: url(#pattern-tower) !important; }
 
 /* Legacy/removed terrain types - keep for backwards compatibility */
 .map-preview .data-layer .terrain-dangerous path { fill: url(#pattern-dangerous) !important; }

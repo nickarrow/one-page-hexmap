@@ -16,6 +16,13 @@ interface PlacedCluster {
 export function generateMap(config: GeneratorConfig): HexJSON {
   const random = createSeededRandom(config.seed);
   const { columns, rows } = config;
+  const totalHexes = columns * rows;
+  
+  // OPR Guidelines (rulebook lines 221-242):
+  // - At least 25% of table should be covered with terrain
+  // - Density slider scales from 20% to 35% coverage
+  const targetCoverage = 0.20 + config.density * 0.15; // 20-35% based on density
+  const targetTerrainHexes = Math.floor(totalHexes * targetCoverage);
   
   // Initialize all hexes as open
   const hexes: Record<string, HexData> = {};
@@ -32,8 +39,10 @@ export function generateMap(config: GeneratorConfig): HexJSON {
     }
   }
   
-  // Calculate number of clusters (15-25 based on density)
-  const numClusters = Math.floor(15 + config.density * 10);
+  // Calculate number of clusters based on target coverage
+  // Average cluster size is ~5 hexes, so estimate cluster count
+  const avgClusterSize = 5;
+  const numClusters = Math.ceil(targetTerrainHexes / avgClusterSize);
   
   // Select terrain types based on mix requirements
   const terrainSelection = selectTerrains(config, numClusters, random);
@@ -88,6 +97,10 @@ export function generateMap(config: GeneratorConfig): HexJSON {
   // 3. Minimum 3-hex pathways for large units (6" at half-scale)
   validateAndFixPlacement(hexes, placedClusters, occupiedHexes, columns, rows, random);
   
+  // Validate terrain type distribution (rulebook lines 221-242)
+  // Ensure we meet the OPR percentage requirements for terrain types
+  validateTerrainMix(hexes, occupiedHexes, columns, rows, config, random);
+  
   // Add elevation if enabled - with proper climbable paths
   if (config.elevationEnabled) {
     addElevationWithPaths(hexes, placedClusters, columns, rows, config, random);
@@ -117,7 +130,11 @@ function selectTerrains(
   const blockingCount = Math.ceil(count * config.terrainMix.blocking);
   const coverCount = Math.ceil(count * config.terrainMix.cover);
   const difficultCount = Math.ceil(count * config.terrainMix.difficult);
-  const dangerousCount = Math.ceil(count * config.terrainMix.dangerous);
+  // OPR rule: "Each player should pick 1 piece to be dangerous" = 2 minimum
+  // Use percentage but ensure at least 2 if dangerous > 0
+  const dangerousCount = config.terrainMix.dangerous > 0 
+    ? Math.max(2, Math.ceil(count * config.terrainMix.dangerous))
+    : 0;
   
   // Blocking terrains (buildings, rocks)
   const blockingTerrains = placeableTerrains.filter(t => t.properties.blocking);
@@ -139,7 +156,7 @@ function selectTerrains(
     result.push(pickRandom(difficultTerrains, random).id);
   }
   
-  // Dangerous terrains
+  // Dangerous terrains (lava) - OPR: 2 pieces minimum (1 per player)
   const dangerousTerrains = placeableTerrains.filter(t => t.properties.dangerous === true);
   for (let i = 0; i < dangerousCount && dangerousTerrains.length > 0; i++) {
     result.push(pickRandom(dangerousTerrains, random).id);
@@ -314,11 +331,27 @@ function addElevationWithPaths(
       createElevationRamp(hexes, cluster, columns, rows, random);
     }
     
-    // For hills, optionally add a higher peak in the center
-    if (preset.id === 'hill' && cluster.hexes.size >= 5 && random() < 0.4) {
+    // For hills, add a higher peak in the center (60% chance, up from 40%)
+    if (preset.id === 'hill' && cluster.hexes.size >= 4 && random() < 0.6) {
       const centerHex = hexes[hexId(cluster.centerQ, cluster.centerR)];
       if (centerHex && centerHex.terrain === 'hill') {
-        centerHex.elevation = Math.min(baseElev + 1, max);
+        centerHex.elevation = Math.min(baseElev + 1, max); // +2 peak
+      }
+    }
+    
+    // For steep hills, add a +3 peak in the center (50% chance)
+    if (preset.id === 'steepHill' && cluster.hexes.size >= 4 && random() < 0.5) {
+      const centerHex = hexes[hexId(cluster.centerQ, cluster.centerR)];
+      if (centerHex && centerHex.terrain === 'steepHill') {
+        centerHex.elevation = Math.min(baseElev + 1, max); // +3 peak
+        // Need a +2 ring around the +3 center for climbability
+        const neighbors = getValidNeighbors(cluster.centerQ, cluster.centerR, columns, rows);
+        for (const neighbor of neighbors) {
+          const nId = hexId(neighbor.q, neighbor.r);
+          if (cluster.hexes.has(nId) && hexes[nId].elevation < 3) {
+            hexes[nId].elevation = 2;
+          }
+        }
       }
     }
     
@@ -326,9 +359,26 @@ function addElevationWithPaths(
     if (preset.id === 'steepHill') {
       ensureClimbablePath(hexes, cluster, columns, rows, random);
     }
+    
+    // For towers, ensure there's a climbable path (they're +2)
+    if (preset.id === 'tower') {
+      ensureClimbablePath(hexes, cluster, columns, rows, random);
+    }
   }
   
-  // Add some standalone elevation features (small rises/depressions)
+  // Give some ruins elevation (50% chance for +1 - partial walls to climb on)
+  for (const cluster of clusters) {
+    if (cluster.terrainId === 'ruins' && random() < 0.5) {
+      // Set ruins to +1 elevation
+      for (const hexIdStr of cluster.hexes) {
+        hexes[hexIdStr].elevation = 1;
+      }
+      // Create ramps for the elevated ruins
+      createElevationRamp(hexes, cluster, columns, rows, random);
+    }
+  }
+  
+  // Add standalone elevation features (small rises/depressions)
   addScatteredElevation(hexes, columns, rows, config, random);
 }
 
@@ -442,20 +492,51 @@ function ensureClimbablePath(
  */
 function addScatteredElevation(
   hexes: Record<string, HexData>,
-  _columns: number, // Reserved for future use
-  _rows: number,    // Reserved for future use
+  columns: number,
+  rows: number,
   config: GeneratorConfig,
   random: () => number
 ): void {
   const { min: minElev, max: maxElev } = config.elevationRange;
   const hexList = Object.values(hexes);
   
-  // Very small chance of standalone elevation (1%)
+  // Add small rises and depressions to open terrain (5% chance, up from 1%)
   for (const hex of hexList) {
-    if (hex.terrain === 'open' && hex.elevation === 0 && random() < 0.01) {
-      // Only +1 or -1 for scattered elevation (always climbable)
-      hex.elevation = random() < 0.6 ? 1 : -1;
+    if (hex.terrain === 'open' && hex.elevation === 0 && random() < 0.05) {
+      // 70% rises (+1), 30% depressions (-1)
+      hex.elevation = random() < 0.7 ? 1 : -1;
       hex.elevation = Math.max(minElev, Math.min(maxElev, hex.elevation));
+    }
+  }
+  
+  // Create a few small elevated clusters (gentle rises) - 2-4 clusters
+  const numRises = randomInt(2, 4, random);
+  for (let i = 0; i < numRises; i++) {
+    // Pick a random open hex away from edges
+    const margin = 4;
+    const q = randomInt(margin, columns - margin, random);
+    const r = randomInt(margin, rows - margin, random);
+    const id = hexId(q, r);
+    const hex = hexes[id];
+    
+    if (hex && hex.terrain === 'open' && hex.elevation === 0) {
+      // Create a small rise (2-4 hexes at +1)
+      hex.elevation = 1;
+      
+      const neighbors = getValidNeighbors(q, r, columns, rows);
+      const shuffled = shuffleArray(neighbors, random);
+      const clusterSize = randomInt(1, 3, random);
+      let added = 0;
+      
+      for (const neighbor of shuffled) {
+        if (added >= clusterSize) break;
+        const nId = hexId(neighbor.q, neighbor.r);
+        const nHex = hexes[nId];
+        if (nHex && nHex.terrain === 'open' && nHex.elevation === 0) {
+          nHex.elevation = 1;
+          added++;
+        }
+      }
     }
   }
 }
@@ -781,6 +862,150 @@ function fillGap(
         occupied.add(nId);
         placed.push(neighbor);
         break;
+      }
+    }
+  }
+}
+
+// =============================================================================
+// OPR TERRAIN MIX VALIDATION (rulebook lines 221-242)
+// =============================================================================
+
+/**
+ * Validate and fix terrain type distribution per OPR guidelines:
+ * - At least 50% of terrain should block LOS
+ * - At least 33% should provide cover
+ * - At least 33% should be difficult terrain
+ */
+function validateTerrainMix(
+  hexes: Record<string, HexData>,
+  occupied: Set<string>,
+  columns: number,
+  rows: number,
+  config: GeneratorConfig,
+  random: () => number
+): void {
+  // Count current terrain hexes by property
+  let totalTerrainHexes = 0;
+  let blockingHexes = 0;
+  let coverHexes = 0;
+  let difficultHexes = 0;
+  
+  for (const hex of Object.values(hexes)) {
+    if (hex.terrain === 'open') continue;
+    totalTerrainHexes++;
+    
+    const preset = TERRAIN_PRESETS[hex.terrain];
+    if (!preset) continue;
+    
+    if (preset.losType === 'blocking' || preset.losType === 'partial') {
+      blockingHexes++;
+    }
+    if (preset.properties.cover) {
+      coverHexes++;
+    }
+    if (preset.properties.difficult) {
+      difficultHexes++;
+    }
+  }
+  
+  // Calculate required counts based on OPR percentages
+  const requiredBlocking = Math.ceil(totalTerrainHexes * config.terrainMix.blocking);
+  const requiredCover = Math.ceil(totalTerrainHexes * config.terrainMix.cover);
+  const requiredDifficult = Math.ceil(totalTerrainHexes * config.terrainMix.difficult);
+  
+  // Add more blocking terrain if needed (buildings, mountains)
+  if (blockingHexes < requiredBlocking) {
+    const deficit = requiredBlocking - blockingHexes;
+    addTerrainOfType(hexes, occupied, columns, rows, 'blocking', deficit, random);
+  }
+  
+  // Add more cover terrain if needed (forest, ruins, barricade)
+  if (coverHexes < requiredCover) {
+    const deficit = requiredCover - coverHexes;
+    addTerrainOfType(hexes, occupied, columns, rows, 'cover', deficit, random);
+  }
+  
+  // Add more difficult terrain if needed (rubble, swamp)
+  if (difficultHexes < requiredDifficult) {
+    const deficit = requiredDifficult - difficultHexes;
+    addTerrainOfType(hexes, occupied, columns, rows, 'difficult', deficit, random);
+  }
+}
+
+/**
+ * Add terrain hexes of a specific type to meet OPR requirements
+ */
+function addTerrainOfType(
+  hexes: Record<string, HexData>,
+  occupied: Set<string>,
+  columns: number,
+  rows: number,
+  terrainType: 'blocking' | 'cover' | 'difficult',
+  count: number,
+  random: () => number
+): void {
+  // Select appropriate terrain presets for the type
+  const placeableTerrains = getPlaceableTerrains();
+  let candidates: string[];
+  
+  switch (terrainType) {
+    case 'blocking':
+      // Blocking LOS = blocking or partial
+      candidates = placeableTerrains
+        .filter(t => t.losType === 'blocking' || t.losType === 'partial')
+        .map(t => t.id);
+      break;
+    case 'cover':
+      candidates = placeableTerrains
+        .filter(t => t.properties.cover)
+        .map(t => t.id);
+      break;
+    case 'difficult':
+      candidates = placeableTerrains
+        .filter(t => t.properties.difficult)
+        .map(t => t.id);
+      break;
+  }
+  
+  if (candidates.length === 0) return;
+  
+  // Find open hexes to place terrain
+  let added = 0;
+  const hexList = Object.values(hexes);
+  const shuffledHexes = shuffleArray([...hexList], random);
+  
+  for (const hex of shuffledHexes) {
+    if (added >= count) break;
+    
+    const id = hexId(hex.q, hex.r);
+    if (hex.terrain !== 'open' || occupied.has(id)) continue;
+    
+    // Pick a random terrain from candidates
+    const terrainId = candidates[Math.floor(random() * candidates.length)];
+    
+    hex.terrain = terrainId;
+    hex.class = `terrain-${terrainId}`;
+    occupied.add(id);
+    added++;
+    
+    // Try to add 1-2 adjacent hexes to form a small cluster
+    const neighbors = getValidNeighbors(hex.q, hex.r, columns, rows);
+    const shuffledNeighbors = shuffleArray(neighbors, random);
+    let clusterAdded = 0;
+    
+    for (const neighbor of shuffledNeighbors) {
+      if (added >= count || clusterAdded >= 2) break;
+      
+      const nId = hexId(neighbor.q, neighbor.r);
+      const neighborHex = hexes[nId];
+      
+      if (neighborHex && neighborHex.terrain === 'open' && !occupied.has(nId)) {
+        neighborHex.terrain = terrainId;
+        neighborHex.class = `terrain-${terrainId}`;
+        occupied.add(nId);
+        added++;
+        clusterAdded++;
       }
     }
   }

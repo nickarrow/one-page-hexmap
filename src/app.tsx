@@ -13,7 +13,7 @@ const DEFAULT_GENERATOR_CONFIG: GeneratorConfig = {
     blocking: 0.50,
     cover: 0.33,
     difficult: 0.33,
-    dangerous: 0.10,
+    dangerous: 0.10, // Generates ~2 dangerous pieces per OPR (1 per player)
   },
   elevationEnabled: true,
   elevationRange: { min: -2, max: 3 },

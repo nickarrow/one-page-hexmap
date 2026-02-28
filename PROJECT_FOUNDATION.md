@@ -221,6 +221,7 @@ These presets are aligned with OPR rulebook guidelines (lines 199-211):
 |--------|---------------|-----|---------------------|
 | **Crater** | Cover | Clear ○ | Dashed concentric circles |
 | **Steep Hill** | Cover + Difficult (upward) | Partial ◧ | Double nested arcs |
+| **Tower** | Cover + Difficult (upward) + Elevated +2 | Partial ◧ | Grid/brick pattern |
 
 Note: "Difficult (upward)" means the terrain is only difficult when moving up onto it, not when moving across or down. This is implemented as `difficult: 'upward'` in the type system.
 
@@ -417,6 +418,7 @@ Each terrain preset has a unique, visually distinct pattern optimized for ~7.5mm
 | Rubble | Rotated rectangles | Angular debris | Only terrain with squares |
 | Ruins | X crosshatch | Crumbling walls | Bold diagonal cross |
 | Building | Solid dark fill | Impassable structure | Darkest solid (#1a1a1a) |
+| Tower | Grid/brick lines | Climbable structure | Light bg with grid pattern |
 | Mountain | Solid with triangle | Impassable rock | Dark solid with subtle texture |
 | Hill | Single curved arc | Elevation contour | One arc, open at bottom |
 | Steep Hill | Double nested arcs | Higher elevation | Multiple arcs vs single |
@@ -728,6 +730,11 @@ const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
 - [x] Basic UI: map display + regenerate button
 - [x] Elevation system (2" per level, ±1 climbable)
 - [x] Hover tooltips showing "Terrain Name | Elev +X | Coordinate"
+- [x] OPR terrain coverage validation (25% minimum, terrain mix percentages)
+- [x] Dangerous terrain generation (minimum 2 per OPR rules)
+- [x] Tower terrain type (climbable elevated structure, +2)
+- [x] Ruins with optional elevation (50% chance of +1)
+- [x] Enhanced elevation distribution (more +2/+3 peaks, scattered rises)
 
 ### Phase 2: Controls & Configuration
 - [ ] Terrain density slider

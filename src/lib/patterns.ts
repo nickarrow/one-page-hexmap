@@ -59,6 +59,16 @@ export const TERRAIN_PATTERNS: Record<string, string> = {
     <rect width="10" height="10" fill="#1a1a1a"/>
   </pattern>`,
   
+  // TOWER: Grid/brick pattern (climbable elevated structure)
+  // Distinct: Grid lines on lighter background - accessible unlike solid building
+  tower: `<pattern id="pattern-tower" patternUnits="userSpaceOnUse" width="40" height="40">
+    <rect width="40" height="40" fill="#e0e0e0"/>
+    <line x1="0" y1="20" x2="40" y2="20" stroke="${STROKE_COLOR}" stroke-width="2" opacity="0.5"/>
+    <line x1="20" y1="0" x2="20" y2="20" stroke="${STROKE_COLOR}" stroke-width="2" opacity="0.5"/>
+    <line x1="0" y1="20" x2="0" y2="40" stroke="${STROKE_COLOR}" stroke-width="2" opacity="0.5"/>
+    <line x1="40" y1="20" x2="40" y2="40" stroke="${STROKE_COLOR}" stroke-width="2" opacity="0.5"/>
+  </pattern>`,
+  
   // MOUNTAIN: Solid dark fill (impassable, slightly lighter than building)
   // Distinct: Solid fill with subtle texture
   rocks: `<pattern id="pattern-rocks" patternUnits="userSpaceOnUse" width="20" height="20">
