@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pattern Exploration — 8mm Hex Patterns</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #f0f0f0; padding: 2rem; margin: 0; }
+    h1 { margin-bottom: 0.5rem; }
+    .subtitle { color: #666; margin-bottom: 2rem; }
+    .batch { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+    .batch h2 { margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; }
+    .pattern-row { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .pattern-item { text-align: center; }
+    .pattern-item .label { font-size: 0.75rem; color: #666; margin-top: 0.25rem; }
+    .size-note { font-size: 0.8rem; color: #888; margin-top: 1rem; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>Pattern Exploration for 8mm Hexes</h1>
+  <p class="subtitle">Multiple batches of 9 distinct patterns. Find what's readable at small size.</p>
+
+  <!-- SVG Defs for all patterns -->
+  <svg width="0" height="0" style="position:absolute;">
+    <defs>
+      <!-- BATCH A: Classic/Traditional -->
+      <pattern id="a1-empty" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#fff"/>
+      </pattern>
+      <pattern id="a2-solid" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#1a1a1a"/>
+      </pattern>
+      <pattern id="a3-horiz" patternUnits="userSpaceOnUse" width="10" height="6">
+        <rect width="10" height="6" fill="#fff"/>
+        <line x1="0" y1="3" x2="10" y2="3" stroke="#222" stroke-width="2"/>
+      </pattern>
+      <pattern id="a4-vert" patternUnits="userSpaceOnUse" width="6" height="10">
+        <rect width="6" height="10" fill="#fff"/>
+        <line x1="3" y1="0" x2="3" y2="10" stroke="#222" stroke-width="2"/>
+      </pattern>
+      <pattern id="a5-diag-r" patternUnits="userSpaceOnUse" width="8" height="8">
+        <rect width="8" height="8" fill="#fff"/>
+        <line x1="0" y1="8" x2="8" y2="0" stroke="#222" stroke-width="2"/>
+      </pattern>
+      <pattern id="a6-diag-l" patternUnits="userSpaceOnUse" width="8" height="8">
+        <rect width="8" height="8" fill="#fff"/>
+        <line x1="0" y1="0" x2="8" y2="8" stroke="#222" stroke-width="2"/>
+      </pattern>
+      <pattern id="a7-grid" patternUnits="userSpaceOnUse" width="8" height="8">
+        <rect width="8" height="8" fill="#fff"/>
+        <line x1="4" y1="0" x2="4" y2="8" stroke="#222" stroke-width="1.5"/>
+        <line x1="0" y1="4" x2="8" y2="4" stroke="#222" stroke-width="1.5"/>
+      </pattern>
+      <pattern id="a8-dots" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#fff"/>
+        <circle cx="5" cy="5" r="2.5" fill="#222"/>
+      </pattern>
+      <pattern id="a9-x" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#fff"/>
+        <line x1="2" y1="2" x2="8" y2="8" stroke="#222" stroke-width="2"/>
+        <line x1="8" y1="2" x2="2" y2="8" stroke="#222" stroke-width="2"/>
+      </pattern>
+
+      <!-- BATCH B: Geometric/Bold -->
+      <pattern id="b1-empty" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#fff"/>
+      </pattern>
+      <pattern id="b2-solid" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#1a1a1a"/>
+      </pattern>
+      <pattern id="b3-checker" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#fff"/>
+        <rect x="0" y="0" width="5" height="5" fill="#222"/>
+        <rect x="5" y="5" width="5" height="5" fill="#222"/>
+      </pattern>
+      <pattern id="b4-triangles" patternUnits="userSpaceOnUse" width="12" height="10">
+        <rect width="12" height="10" fill="#fff"/>
+        <polygon points="6,1 11,9 1,9" fill="#222"/>
+      </pattern>
+      <pattern id="b5-diamonds" patternUnits="userSpaceOnUse" width="12" height="12">
+        <rect width="12" height="12" fill="#fff"/>
+        <polygon points="6,1 11,6 6,11 1,6" fill="#222"/>
+      </pattern>
+      <pattern id="b6-hexdots" patternUnits="userSpaceOnUse" width="14" height="12">
+        <rect width="14" height="12" fill="#fff"/>
+        <circle cx="3" cy="3" r="2" fill="#222"/>
+        <circle cx="10" cy="3" r="2" fill="#222"/>
+        <circle cx="7" cy="9" r="2" fill="#222"/>
+      </pattern>
+      <pattern id="b7-brick" patternUnits="userSpaceOnUse" width="12" height="8">
+        <rect width="12" height="8" fill="#fff"/>
+        <line x1="0" y1="4" x2="12" y2="4" stroke="#222" stroke-width="1.5"/>
+        <line x1="6" y1="0" x2="6" y2="4" stroke="#222" stroke-width="1.5"/>
+        <line x1="0" y1="4" x2="0" y2="8" stroke="#222" stroke-width="1.5"/>
+        <line x1="12" y1="4" x2="12" y2="8" stroke="#222" stroke-width="1.5"/>
+      </pattern>
+      <pattern id="b8-waves" patternUnits="userSpaceOnUse" width="16" height="8">
+        <rect width="16" height="8" fill="#fff"/>
+        <path d="M0,4 Q4,0 8,4 T16,4" stroke="#222" stroke-width="2" fill="none"/>
+      </pattern>
+      <pattern id="b9-zigzag" patternUnits="userSpaceOnUse" width="12" height="8">
+        <rect width="12" height="8" fill="#fff"/>
+        <polyline points="0,6 3,2 6,6 9,2 12,6" stroke="#222" stroke-width="2" fill="none"/>
+      </pattern>
+
+      <!-- BATCH C: Organic/Natural -->
+      <pattern id="c1-empty" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#fff"/>
+      </pattern>
+      <pattern id="c2-solid" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#1a1a1a"/>
+      </pattern>
+      <pattern id="c3-stipple" patternUnits="userSpaceOnUse" width="12" height="12">
+        <rect width="12" height="12" fill="#fff"/>
+        <circle cx="2" cy="3" r="1.5" fill="#222"/>
+        <circle cx="8" cy="2" r="1.5" fill="#222"/>
+        <circle cx="5" cy="7" r="1.5" fill="#222"/>
+        <circle cx="10" cy="9" r="1.5" fill="#222"/>
+        <circle cx="3" cy="11" r="1.5" fill="#222"/>
+      </pattern>
+      <pattern id="c4-circles" patternUnits="userSpaceOnUse" width="14" height="14">
+        <rect width="14" height="14" fill="#fff"/>
+        <circle cx="7" cy="7" r="5" stroke="#222" stroke-width="2" fill="none"/>
+      </pattern>
+      <pattern id="c5-arcs" patternUnits="userSpaceOnUse" width="14" height="10">
+        <rect width="14" height="10" fill="#fff"/>
+        <path d="M0,10 Q7,0 14,10" stroke="#222" stroke-width="2" fill="none"/>
+      </pattern>
+      <pattern id="c6-scales" patternUnits="userSpaceOnUse" width="12" height="10">
+        <rect width="12" height="10" fill="#fff"/>
+        <path d="M0,10 Q6,2 12,10" stroke="#222" stroke-width="1.5" fill="none"/>
+        <path d="M-6,10 Q0,2 6,10" stroke="#222" stroke-width="1.5" fill="none"/>
+      </pattern>
+      <pattern id="c7-dashes" patternUnits="userSpaceOnUse" width="10" height="6">
+        <rect width="10" height="6" fill="#fff"/>
+        <line x1="1" y1="3" x2="5" y2="3" stroke="#222" stroke-width="2" stroke-linecap="round"/>
+      </pattern>
+      <pattern id="c8-spots" patternUnits="userSpaceOnUse" width="16" height="16">
+        <rect width="16" height="16" fill="#fff"/>
+        <circle cx="4" cy="4" r="3" fill="#222"/>
+        <circle cx="12" cy="12" r="3" fill="#222"/>
+      </pattern>
+      <pattern id="c9-cross" patternUnits="userSpaceOnUse" width="12" height="12">
+        <rect width="12" height="12" fill="#fff"/>
+        <line x1="6" y1="2" x2="6" y2="10" stroke="#222" stroke-width="2"/>
+        <line x1="2" y1="6" x2="10" y2="6" stroke="#222" stroke-width="2"/>
+      </pattern>
+
+      <!-- BATCH D: High Contrast/Bold -->
+      <pattern id="d1-empty" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#fff"/>
+      </pattern>
+      <pattern id="d2-solid" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#1a1a1a"/>
+      </pattern>
+      <pattern id="d3-thick-horiz" patternUnits="userSpaceOnUse" width="10" height="8">
+        <rect width="10" height="8" fill="#fff"/>
+        <rect x="0" y="2" width="10" height="4" fill="#222"/>
+      </pattern>
+      <pattern id="d4-thick-vert" patternUnits="userSpaceOnUse" width="8" height="10">
+        <rect width="8" height="10" fill="#fff"/>
+        <rect x="2" y="0" width="4" height="10" fill="#222"/>
+      </pattern>
+      <pattern id="d5-thick-diag" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#fff"/>
+        <line x1="-2" y1="10" x2="10" y2="-2" stroke="#222" stroke-width="4"/>
+      </pattern>
+      <pattern id="d6-half" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#fff"/>
+        <rect x="0" y="5" width="10" height="5" fill="#222"/>
+      </pattern>
+      <pattern id="d7-quarter" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#fff"/>
+        <rect x="0" y="0" width="5" height="5" fill="#222"/>
+      </pattern>
+      <pattern id="d8-ring" patternUnits="userSpaceOnUse" width="14" height="14">
+        <rect width="14" height="14" fill="#fff"/>
+        <circle cx="7" cy="7" r="4" stroke="#222" stroke-width="3" fill="none"/>
+      </pattern>
+      <pattern id="d9-target" patternUnits="userSpaceOnUse" width="16" height="16">
+        <rect width="16" height="16" fill="#fff"/>
+        <circle cx="8" cy="8" r="6" stroke="#222" stroke-width="2" fill="none"/>
+        <circle cx="8" cy="8" r="2" fill="#222"/>
+      </pattern>
+    </defs>
+  </svg>
+
+  <!-- BATCH A: Classic -->
+  <div class="batch">
+    <h2>Batch A: Classic/Traditional Patterns</h2>
+    <div class="pattern-row">
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#a1-empty)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">1. Empty</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#a2-solid)" stroke="#000" stroke-width="1"/></svg>
+        <div class="label">2. Solid</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#a3-horiz)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">3. Horizontal</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#a4-vert)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">4. Vertical</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#a5-diag-r)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">5. Diag Right</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#a6-diag-l)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">6. Diag Left</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#a7-grid)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">7. Grid</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#a8-dots)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">8. Dots</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#a9-x)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">9. X Marks</div>
+      </div>
+    </div>
+    <p class="size-note">Classic hatching patterns used in technical drawing and cartography.</p>
+  </div>
+
+  <!-- BATCH B: Geometric -->
+  <div class="batch">
+    <h2>Batch B: Geometric/Bold Shapes</h2>
+    <div class="pattern-row">
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#b1-empty)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">1. Empty</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#b2-solid)" stroke="#000" stroke-width="1"/></svg>
+        <div class="label">2. Solid</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#b3-checker)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">3. Checker</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#b4-triangles)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">4. Triangles</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#b5-diamonds)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">5. Diamonds</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#b6-hexdots)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">6. Hex Dots</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#b7-brick)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">7. Brick</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#b8-waves)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">8. Waves</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#b9-zigzag)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">9. Zigzag</div>
+      </div>
+    </div>
+    <p class="size-note">Bold geometric shapes with strong visual identity.</p>
+  </div>
+
+  <!-- BATCH C: Organic -->
+  <div class="batch">
+    <h2>Batch C: Organic/Natural Patterns</h2>
+    <div class="pattern-row">
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#c1-empty)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">1. Empty</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#c2-solid)" stroke="#000" stroke-width="1"/></svg>
+        <div class="label">2. Solid</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#c3-stipple)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">3. Stipple</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#c4-circles)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">4. Circles</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#c5-arcs)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">5. Arcs</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#c6-scales)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">6. Scales</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#c7-dashes)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">7. Dashes</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#c8-spots)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">8. Spots</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#c9-cross)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">9. Cross</div>
+      </div>
+    </div>
+    <p class="size-note">Softer, more organic patterns inspired by nature and texture.</p>
+  </div>
+
+  <!-- BATCH D: High Contrast -->
+  <div class="batch">
+    <h2>Batch D: High Contrast/Bold</h2>
+    <div class="pattern-row">
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#d1-empty)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">1. Empty</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#d2-solid)" stroke="#000" stroke-width="1"/></svg>
+        <div class="label">2. Solid</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#d3-thick-horiz)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">3. Thick Horiz</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#d4-thick-vert)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">4. Thick Vert</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#d5-thick-diag)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">5. Thick Diag</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#d6-half)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">6. Half</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#d7-quarter)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">7. Quarter</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#d8-ring)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">8. Ring</div>
+      </div>
+      <div class="pattern-item">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#d9-target)" stroke="#999" stroke-width="1"/></svg>
+        <div class="label">9. Target</div>
+      </div>
+    </div>
+    <p class="size-note">Maximum contrast patterns for best small-size readability.</p>
+  </div>
+
+  <!-- Actual Size Comparison -->
+  <div class="batch">
+    <h2>Actual Print Size (~8mm hexes) — All Batches</h2>
+    <p style="color:#666;margin-bottom:1rem;">These are approximately 8mm wide. Which patterns remain distinct?</p>
+    
+    <h3 style="font-size:0.9rem;color:#444;margin:1rem 0 0.5rem;">Batch A:</h3>
+    <div class="pattern-row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#a1-empty)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#a2-solid)" stroke="#000" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#a3-horiz)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#a4-vert)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#a5-diag-r)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#a6-diag-l)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#a7-grid)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#a8-dots)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#a9-x)" stroke="#999" stroke-width="0.5"/></svg>
+    </div>
+    
+    <h3 style="font-size:0.9rem;color:#444;margin:1rem 0 0.5rem;">Batch B:</h3>
+    <div class="pattern-row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#b1-empty)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#b2-solid)" stroke="#000" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#b3-checker)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#b4-triangles)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#b5-diamonds)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#b6-hexdots)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#b7-brick)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#b8-waves)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#b9-zigzag)" stroke="#999" stroke-width="0.5"/></svg>
+    </div>
+    
+    <h3 style="font-size:0.9rem;color:#444;margin:1rem 0 0.5rem;">Batch C:</h3>
+    <div class="pattern-row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#c1-empty)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#c2-solid)" stroke="#000" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#c3-stipple)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#c4-circles)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#c5-arcs)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#c6-scales)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#c7-dashes)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#c8-spots)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#c9-cross)" stroke="#999" stroke-width="0.5"/></svg>
+    </div>
+    
+    <h3 style="font-size:0.9rem;color:#444;margin:1rem 0 0.5rem;">Batch D:</h3>
+    <div class="pattern-row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#d1-empty)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#d2-solid)" stroke="#000" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#d3-thick-horiz)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#d4-thick-vert)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#d5-thick-diag)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#d6-half)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#d7-quarter)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#d8-ring)" stroke="#999" stroke-width="0.5"/></svg>
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#d9-target)" stroke="#999" stroke-width="0.5"/></svg>
+    </div>
+  </div>
+
+</body>
+</html>

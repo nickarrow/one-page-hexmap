@@ -20,6 +20,7 @@ export default [
         OI: 'readonly',
         console: 'readonly',
         document: 'readonly',
+        window: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
         requestAnimationFrame: 'readonly',

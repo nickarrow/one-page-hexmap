@@ -1,1263 +1,513 @@
 /**
  * Procedural hex map generator following OPR terrain placement guidelines.
- *
- * Design Philosophy:
- * Generate terrain PIECES (not individual hexes) with proper spacing,
- * then validate the result meets OPR guidelines.
- *
- * OPR Guidelines (from rulebook):
- * - 15-20 terrain pieces on a 6'x4' table (8-12 for our half-scale)
- * - Pieces should cover ~25% of table when combined
- * - Minimum 6" gap between pieces (for unit passage)
- * - Maximum 12" gap (no huge empty zones)
- * - 50% of pieces should block LOS
- * - 33% should provide cover
- * - 33% should be difficult
- * - 2 pieces should be dangerous
- * - No clear edge-to-edge sightlines
  */
 
-import type { GeneratorConfig, HexJSON, HexData, TerrainPreset } from '../types';
-import { TERRAIN_PRESETS, getPlaceableTerrainsFiltered } from './terrainPresets';
-import { THEME_TERRAIN_IDS } from './presets';
-import { createSeededRandom, randomInt, pickRandom, shuffleArray } from './random';
-import { coordToLabel, hexId, getValidNeighbors, hexDistance } from './hexmath';
-import { MIN_PASSAGE_HEXES, MAX_TERRAIN_GAP_HEXES } from './constants';
+import type { HexGrid, TerrainType, GeneratorConfig } from './types';
+import { TERRAIN_PROPERTIES } from './types';
+import {
+  GRID_COLUMNS,
+  GRID_ROWS,
+  TOTAL_HEXES,
+  PIECE_SIZE_SMALL,
+  PIECE_SIZE_MEDIUM,
+  PIECE_SIZE_LARGE,
+} from './constants';
+import { createSeededRandom, randomInt, pickRandom, shuffleArray, chance } from './random';
+import { getValidNeighbors, hexDistance, hexKey, isValidCoord } from './hexUtils';
 
-// =============================================================================
-// CONFIGURATION
-// =============================================================================
-
-/** Target number of terrain pieces for half-scale table (8-10 base, scaled by density) */
-const PIECE_COUNT = { MIN: 6, MAX: 12 } as const;
-
-/** Margin from map edges for initial placement */
-const EDGE_MARGIN = 2;
-
-// =============================================================================
-// TYPES
-// =============================================================================
-
-interface PlacedPiece {
-  id: string;
-  terrainId: string;
-  hexes: Set<string>;
-  centerQ: number;
-  centerR: number;
-}
-
-// =============================================================================
-// MAIN GENERATION FUNCTION
-// =============================================================================
-
-export function generateMap(config: GeneratorConfig): HexJSON {
-  const random = createSeededRandom(config.seed);
-  const { columns, rows } = config;
-
-  // Initialize empty grid
-  const hexes = initializeGrid(columns, rows);
-
-  // Get available terrain types for this theme
-  const availableTerrains = getPlaceableTerrainsFiltered(THEME_TERRAIN_IDS[config.theme]);
-
-  // Calculate how many pieces to place based on density
-  const targetPieceCount = Math.round(
-    PIECE_COUNT.MIN + config.density * (PIECE_COUNT.MAX - PIECE_COUNT.MIN)
-  );
-
-  // Determine terrain mix (how many of each type)
-  const terrainList = selectTerrainMix(availableTerrains, targetPieceCount, config, random);
-
-  // Place terrain pieces with spacing constraints
-  const placedPieces = placeTerrainPieces(
-    hexes,
-    terrainList,
-    columns,
-    rows,
-    config.pieceSize,
-    random
-  );
-
-  // Collect all occupied hexes for validation
-  const occupiedHexes = new Set<string>();
-  for (const piece of placedPieces) {
-    for (const hId of piece.hexes) {
-      occupiedHexes.add(hId);
+export function createEmptyGrid(): HexGrid {
+  const grid: HexGrid = [];
+  for (let col = 0; col < GRID_COLUMNS; col++) {
+    grid[col] = [];
+    for (let row = 0; row < GRID_ROWS; row++) {
+      grid[col][row] = { col, row, terrain: 'open', elevation: 0 };
     }
   }
-
-  // Validate and fix: no gaps larger than 12 hexes
-  fillLargeGaps(hexes, occupiedHexes, columns, rows, availableTerrains, random);
-
-  // Validate and fix LOS (add blockers if needed)
-  ensureNoEdgeToEdgeLOS(hexes, occupiedHexes, columns, rows, availableTerrains, random);
-
-  // Add elevation if enabled
-  if (config.elevationEnabled) {
-    addElevation(hexes, placedPieces, columns, rows, config, random);
-  }
-
-  // Update tooltips
-  updateHexTooltips(hexes);
-
-  return { layout: 'odd-q', hexes };
+  return grid;
 }
 
-// =============================================================================
-// GRID INITIALIZATION
-// =============================================================================
-
-function initializeGrid(columns: number, rows: number): Record<string, HexData> {
-  const hexes: Record<string, HexData> = {};
-  for (let q = 0; q < columns; q++) {
-    for (let r = 0; r < rows; r++) {
-      const id = hexId(q, r);
-      hexes[id] = {
-        q,
-        r,
-        n: coordToLabel(q, r),
-        terrain: 'open',
-        elevation: 0,
-      };
-    }
-  }
-  return hexes;
+interface TerrainBudget {
+  totalHexes: number;
+  blockingHexes: number;
+  impassableHexes: number;
+  coverHexes: number;
+  difficultHexes: number;
+  dangerousHexes: number;
 }
 
-// =============================================================================
-// TERRAIN SELECTION
-// =============================================================================
+function calculateTerrainBudget(config: GeneratorConfig): TerrainBudget {
+  // Density now has full range effect:
+  // 0.0 = ~10% coverage (sparse)
+  // 0.5 = ~25% coverage (default/OPR minimum)
+  // 1.0 = ~40% coverage (dense)
+  const targetCoverage = 0.1 + config.density * 0.3;
+  const totalHexes = Math.round(TOTAL_HEXES * targetCoverage);
 
-/**
- * Select terrain types to meet OPR mix requirements:
- * - 50% blocking LOS
- * - 33% cover
- * - 33% difficult
- * - At least 2 dangerous (if enabled)
- */
-function selectTerrainMix(
-  available: TerrainPreset[],
-  count: number,
-  config: GeneratorConfig,
-  random: () => number
-): TerrainPreset[] {
-  const result: TerrainPreset[] = [];
+  // Dangerous is special: OPR guideline is "2+ clusters", not a percentage
+  const dangerousHexes =
+    config.terrainMix.dangerous > 0 ? Math.round(6 + config.terrainMix.dangerous * 20) : 0;
 
-  // Calculate required counts
-  const blockingNeeded = Math.ceil(count * config.terrainMix.blocking);
-  const coverNeeded = Math.ceil(count * config.terrainMix.cover);
-  const difficultNeeded = Math.ceil(count * config.terrainMix.difficult);
-  const dangerousNeeded =
-    config.terrainMix.dangerous > 0
-      ? Math.max(2, Math.ceil(count * config.terrainMix.dangerous))
-      : 0;
-
-  // Categorize available terrain
-  const blocking = available.filter((t) => t.losType === 'blocking' || t.losType === 'partial');
-  const coverOnly = available.filter((t) => t.properties.cover && t.losType === 'clear');
-  const difficultOnly = available.filter(
-    (t) => t.properties.difficult && !t.properties.cover && t.losType === 'clear'
-  );
-  const dangerous = available.filter((t) => t.properties.dangerous === true);
-
-  // Add blocking terrain first (most important for gameplay)
-  addFromCategory(result, blocking, blockingNeeded, random);
-
-  // Add cover terrain (that isn't already blocking)
-  addFromCategory(result, coverOnly, coverNeeded, random);
-
-  // Add difficult terrain
-  addFromCategory(result, difficultOnly, difficultNeeded, random);
-
-  // Add dangerous terrain
-  if (dangerousNeeded > 0 && dangerous.length > 0) {
-    addFromCategory(result, dangerous, dangerousNeeded, random);
-  }
-
-  // Fill remaining slots with random terrain
-  while (result.length < count) {
-    result.push(pickRandom(available, random));
-  }
-
-  // Shuffle and trim to exact count
-  return shuffleArray(result, random).slice(0, count);
+  return {
+    totalHexes,
+    blockingHexes: Math.round(totalHexes * config.terrainMix.blocking),
+    impassableHexes: Math.round(totalHexes * config.terrainMix.impassable),
+    coverHexes: Math.round(totalHexes * config.terrainMix.cover),
+    difficultHexes: Math.round(totalHexes * config.terrainMix.difficult),
+    dangerousHexes,
+  };
 }
 
-function addFromCategory(
-  result: TerrainPreset[],
-  category: TerrainPreset[],
-  count: number,
-  random: () => number
-): void {
-  if (category.length === 0) return;
-  for (let i = 0; i < count; i++) {
-    result.push(pickRandom(category, random));
-  }
+function getPieceSizeRange(pieceSize: number): { min: number; max: number } {
+  if (pieceSize < 0.33) return PIECE_SIZE_SMALL;
+  if (pieceSize < 0.66) return PIECE_SIZE_MEDIUM;
+  return PIECE_SIZE_LARGE;
 }
 
-// =============================================================================
-// TERRAIN PLACEMENT
-// =============================================================================
-
-/**
- * Place terrain pieces with minimum spacing between them.
- */
-function placeTerrainPieces(
-  hexes: Record<string, HexData>,
-  terrainList: TerrainPreset[],
-  columns: number,
-  rows: number,
-  pieceSize: number,
-  random: () => number
-): PlacedPiece[] {
-  const placed: PlacedPiece[] = [];
-  const occupiedHexes = new Set<string>();
-
-  for (const terrain of terrainList) {
-    // Find a valid placement position
-    const position = findValidPosition(columns, rows, occupiedHexes, placed, random);
-
-    if (!position) continue; // Skip if no valid position found
-
-    // Determine piece size based on terrain type and pieceSize config
-    const sizeRange = getTerrainSizeRange(terrain, pieceSize);
-    const targetSize = randomInt(sizeRange.min, sizeRange.max, random);
-
-    // Grow the piece from the center
-    const pieceHexes = growPiece(
-      position.q,
-      position.r,
-      targetSize,
-      terrain.shape,
-      columns,
-      rows,
-      occupiedHexes,
-      random
-    );
-
-    if (pieceHexes.size < sizeRange.min) continue; // Too small, skip
-
-    // Apply terrain to hexes
-    for (const hId of pieceHexes) {
-      hexes[hId].terrain = terrain.id;
-      hexes[hId].class = `terrain-${terrain.id}`;
-      occupiedHexes.add(hId);
-    }
-
-    placed.push({
-      id: `piece-${placed.length}`,
-      terrainId: terrain.id,
-      hexes: pieceHexes,
-      centerQ: position.q,
-      centerR: position.r,
-    });
-  }
-
-  return placed;
+function getMinSpacing(clusterSpacing: number, pieceCount: number): number {
+  // Base spacing from slider: 1 (tight) to 6 (spread out)
+  const baseSpacing = Math.round(1 + clusterSpacing * 5);
+  // Reduce spacing as we place more pieces to ensure we can fit them
+  if (pieceCount > 15) return Math.max(1, baseSpacing - 2);
+  if (pieceCount > 8) return Math.max(1, baseSpacing - 1);
+  return baseSpacing;
 }
 
-/**
- * Find a position that maintains minimum spacing from existing terrain.
- */
 function findValidPosition(
-  columns: number,
-  rows: number,
+  grid: HexGrid,
   occupied: Set<string>,
-  placed: PlacedPiece[],
-  random: () => number
-): { q: number; r: number } | null {
-  const maxAttempts = 50;
+  random: () => number,
+  minSpacing: number,
+  halfOnly?: 'top' | 'bottom'
+): { col: number; row: number } | null {
+  const rowMin = halfOnly === 'bottom' ? Math.floor(GRID_ROWS / 2) : 1;
+  const rowMax = halfOnly === 'top' ? Math.floor(GRID_ROWS / 2) - 1 : GRID_ROWS - 2;
 
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const q = randomInt(EDGE_MARGIN, columns - EDGE_MARGIN - 1, random);
-    const r = randomInt(EDGE_MARGIN, rows - EDGE_MARGIN - 1, random);
-    const id = hexId(q, r);
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const col = randomInt(1, GRID_COLUMNS - 2, random);
+    const row = randomInt(rowMin, rowMax, random);
+    const key = hexKey(col, row);
+    if (occupied.has(key) || grid[col][row].terrain !== 'open') continue;
 
-    // Check if hex is already occupied
-    if (occupied.has(id)) continue;
-
-    // Check minimum distance from all placed pieces
     let tooClose = false;
-    for (const piece of placed) {
-      const dist = hexDistance(q, r, piece.centerQ, piece.centerR);
-      if (dist < MIN_PASSAGE_HEXES) {
-        tooClose = true;
-        break;
+    for (let dc = -minSpacing; dc <= minSpacing && !tooClose; dc++) {
+      for (let dr = -minSpacing; dr <= minSpacing && !tooClose; dr++) {
+        const nc = col + dc;
+        const nr = row + dr;
+        if (!isValidCoord(nc, nr)) continue;
+        if (grid[nc][nr].terrain !== 'open') {
+          if (hexDistance(col, row, nc, nr) < minSpacing) tooClose = true;
+        }
       }
     }
-
-    if (!tooClose) {
-      return { q, r };
-    }
+    if (!tooClose) return { col, row };
   }
 
+  // Fallback: find any open position
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const col = randomInt(0, GRID_COLUMNS - 1, random);
+    const row = randomInt(rowMin, rowMax, random);
+    if (!occupied.has(hexKey(col, row)) && grid[col][row].terrain === 'open') {
+      return { col, row };
+    }
+  }
   return null;
 }
 
-/**
- * Get appropriate size range for a terrain type, scaled by pieceSize config.
- *
- * To hit ~25% coverage with 9 pieces on 864 hexes, we need ~24 hexes per piece average.
- * pieceSize=0.5 (default) should give roughly this.
- * pieceSize=0.2 gives smaller pieces (~10 hex avg)
- * pieceSize=1.0 gives larger pieces (~35 hex avg)
- */
-function getTerrainSizeRange(
-  terrain: TerrainPreset,
-  pieceSize: number
-): { min: number; max: number } {
-  // Base sizes scaled by pieceSize (0.2 to 1.0)
-  // At pieceSize=0.5: min ~15, max ~30
-  // At pieceSize=0.2: min ~6, max ~15
-  // At pieceSize=1.0: min ~25, max ~45
-  const baseMin = 6 + Math.round(pieceSize * 25);
-  const baseMax = 15 + Math.round(pieceSize * 35);
-
-  // Adjust based on terrain's natural cluster size preference
-  const preset = terrain.clusterSize;
-  const terrainScale = (preset.min + preset.max) / 10; // Normalize around 1.0
-
-  return {
-    min: Math.max(4, Math.round(baseMin * terrainScale * 0.7)),
-    max: Math.round(baseMax * terrainScale),
-  };
-}
-
-/**
- * Grow a terrain piece from a center point.
- */
 function growPiece(
-  centerQ: number,
-  centerR: number,
+  grid: HexGrid,
+  startCol: number,
+  startRow: number,
   targetSize: number,
-  shape: string,
-  columns: number,
-  rows: number,
   occupied: Set<string>,
-  random: () => number
+  random: () => number,
+  halfOnly?: 'top' | 'bottom'
 ): Set<string> {
   const piece = new Set<string>();
-  const centerId = hexId(centerQ, centerR);
+  const startKey = hexKey(startCol, startRow);
+  if (occupied.has(startKey) || grid[startCol][startRow].terrain !== 'open') return piece;
 
-  if (occupied.has(centerId)) return piece;
+  const rowMin = halfOnly === 'bottom' ? Math.floor(GRID_ROWS / 2) : 0;
+  const rowMax = halfOnly === 'top' ? Math.floor(GRID_ROWS / 2) - 1 : GRID_ROWS - 1;
 
-  piece.add(centerId);
+  piece.add(startKey);
+  const frontier = [{ col: startCol, row: startRow }];
 
-  if (shape === 'linear') {
-    growLinear(piece, centerQ, centerR, targetSize, columns, rows, occupied, random);
-  } else {
-    growOrganic(piece, centerQ, centerR, targetSize, columns, rows, occupied, random);
+  while (piece.size < targetSize && frontier.length > 0) {
+    const idx = Math.floor(random() * frontier.length);
+    const current = frontier[idx];
+    const neighbors = shuffleArray([...getValidNeighbors(current.col, current.row)], random);
+
+    let added = false;
+    for (const neighbor of neighbors) {
+      if (piece.size >= targetSize) break;
+      // Respect half-only constraint for symmetry
+      if (neighbor.row < rowMin || neighbor.row > rowMax) continue;
+
+      const nKey = hexKey(neighbor.col, neighbor.row);
+      if (occupied.has(nKey) || piece.has(nKey)) continue;
+      if (grid[neighbor.col][neighbor.row].terrain !== 'open') continue;
+
+      const dist = hexDistance(startCol, startRow, neighbor.col, neighbor.row);
+      if (dist > Math.ceil(Math.sqrt(targetSize)) + 1) continue;
+
+      piece.add(nKey);
+      frontier.push(neighbor);
+      added = true;
+    }
+    if (!added) frontier.splice(idx, 1);
   }
-
   return piece;
 }
 
-function growLinear(
-  piece: Set<string>,
-  startQ: number,
-  startR: number,
-  targetSize: number,
-  columns: number,
-  rows: number,
+function applyTerrain(
+  grid: HexGrid,
+  hexes: Set<string>,
+  terrain: TerrainType,
+  occupied: Set<string>
+): void {
+  for (const key of hexes) {
+    const [col, row] = key.split(',').map(Number);
+    grid[col][row].terrain = terrain;
+    occupied.add(key);
+  }
+}
+
+function mirrorTerrain(grid: HexGrid, occupied: Set<string>): void {
+  // Mirror top half to bottom half (horizontal axis of symmetry)
+  // Deployment is along long edges (top/bottom), so players face each other vertically
+  const midRow = Math.floor(GRID_ROWS / 2);
+
+  for (let col = 0; col < GRID_COLUMNS; col++) {
+    for (let row = 0; row < midRow; row++) {
+      const mirrorRow = GRID_ROWS - 1 - row;
+      const srcHex = grid[col][row];
+      if (srcHex.terrain !== 'open') {
+        grid[col][mirrorRow].terrain = srcHex.terrain;
+        grid[col][mirrorRow].elevation = srcHex.elevation;
+        occupied.add(hexKey(col, mirrorRow));
+      }
+    }
+  }
+}
+
+function selectTerrainType(
+  needsBlocking: boolean,
+  needsImpassable: boolean,
+  needsCover: boolean,
+  needsDifficult: boolean,
+  needsDangerous: boolean,
+  random: () => number
+): TerrainType {
+  if (needsBlocking && chance(0.6, random)) return 'blocking';
+  if (needsImpassable && chance(0.5, random)) return 'impassable';
+  if (needsCover && needsDifficult && needsDangerous && chance(0.15, random))
+    return 'cover-difficult-dangerous';
+  if (needsCover && needsDifficult && chance(0.4, random)) return 'cover-difficult';
+  if (needsCover && needsDangerous && chance(0.3, random)) return 'cover-dangerous';
+  if (needsDifficult && needsDangerous && chance(0.3, random)) return 'difficult-dangerous';
+  if (needsCover && chance(0.5, random)) return 'cover';
+  if (needsDifficult && chance(0.5, random)) return 'difficult';
+  if (needsDangerous && chance(0.4, random)) return 'dangerous';
+  if (needsBlocking) return 'blocking';
+  if (needsImpassable) return 'impassable';
+  if (needsCover) return chance(0.5, random) ? 'cover' : 'cover-difficult';
+  if (needsDifficult) return 'difficult';
+  if (needsDangerous) return 'dangerous';
+  return 'cover-difficult';
+}
+
+function ensureLOSBlocking(
+  grid: HexGrid,
   occupied: Set<string>,
-  random: () => number
+  random: () => number,
+  strict: boolean
 ): void {
-  const direction = randomInt(0, 5, random);
-  let currentQ = startQ;
-  let currentR = startR;
-
-  while (piece.size < targetSize) {
-    const neighbors = getValidNeighbors(currentQ, currentR, columns, rows);
-    if (neighbors.length === 0) break;
-
-    const next = neighbors[direction % neighbors.length];
-    const nextId = hexId(next.q, next.r);
-
-    if (occupied.has(nextId) || piece.has(nextId)) break;
-
-    piece.add(nextId);
-    currentQ = next.q;
-    currentR = next.r;
-  }
-}
-
-function growOrganic(
-  piece: Set<string>,
-  centerQ: number,
-  centerR: number,
-  targetSize: number,
-  columns: number,
-  rows: number,
-  occupied: Set<string>,
-  random: () => number
-): void {
-  const frontier = [{ q: centerQ, r: centerR }];
-  const maxAttempts = targetSize * 5;
-  let attempts = 0;
-
-  while (piece.size < targetSize && frontier.length > 0 && attempts < maxAttempts) {
-    attempts++;
-    const current = frontier[Math.floor(random() * frontier.length)];
-    const neighbors = shuffleArray(getValidNeighbors(current.q, current.r, columns, rows), random);
-
-    for (const neighbor of neighbors) {
-      if (piece.size >= targetSize) break;
-
-      const nId = hexId(neighbor.q, neighbor.r);
-      if (occupied.has(nId) || piece.has(nId)) continue;
-
-      // Keep piece roughly compact but allow for larger pieces
-      const distFromCenter = hexDistance(centerQ, centerR, neighbor.q, neighbor.r);
-      const maxDist = Math.ceil(Math.sqrt(targetSize)) + 2;
-      if (distFromCenter > maxDist) continue;
-
-      piece.add(nId);
-      frontier.push(neighbor);
-    }
-  }
-}
-
-// =============================================================================
-// GAP VALIDATION
-// =============================================================================
-
-/**
- * Find and fill gaps larger than MAX_TERRAIN_GAP_HEXES (12 hexes).
- * OPR: "no gaps bigger than 12" between different terrain pieces"
- */
-function fillLargeGaps(
-  hexes: Record<string, HexData>,
-  occupied: Set<string>,
-  columns: number,
-  rows: number,
-  available: TerrainPreset[],
-  random: () => number
-): void {
-  const checked = new Set<string>();
-
-  for (let q = 0; q < columns; q++) {
-    for (let r = 0; r < rows; r++) {
-      const id = hexId(q, r);
-      if (checked.has(id) || occupied.has(id)) continue;
-
-      // Measure this open area
-      const gap = measureOpenArea(hexes, q, r, columns, rows, checked);
-
-      if (gap.maxExtent > MAX_TERRAIN_GAP_HEXES) {
-        // Add terrain to fill the gap
-        addGapFiller(hexes, occupied, gap.centerQ, gap.centerR, columns, rows, available, random);
-      }
-    }
-  }
-}
-
-/**
- * Measure the extent of a connected open area using BFS.
- */
-function measureOpenArea(
-  hexes: Record<string, HexData>,
-  startQ: number,
-  startR: number,
-  columns: number,
-  rows: number,
-  checked: Set<string>
-): { maxExtent: number; centerQ: number; centerR: number } {
-  const frontier = [{ q: startQ, r: startR }];
-  let minQ = startQ,
-    maxQ = startQ;
-  let minR = startR,
-    maxR = startR;
-  let count = 0;
-  const maxSearch = 150; // Limit search to prevent performance issues
-
-  while (frontier.length > 0 && count < maxSearch) {
-    const current = frontier.shift()!;
-    const id = hexId(current.q, current.r);
-
-    if (checked.has(id)) continue;
-    checked.add(id);
-
-    const hex = hexes[id];
-    if (!hex || hex.terrain !== 'open') continue;
-
-    count++;
-    minQ = Math.min(minQ, current.q);
-    maxQ = Math.max(maxQ, current.q);
-    minR = Math.min(minR, current.r);
-    maxR = Math.max(maxR, current.r);
-
-    for (const n of getValidNeighbors(current.q, current.r, columns, rows)) {
-      const nId = hexId(n.q, n.r);
-      if (!checked.has(nId)) {
-        frontier.push(n);
-      }
-    }
-  }
-
-  return {
-    maxExtent: Math.max(maxQ - minQ, maxR - minR),
-    centerQ: Math.floor((minQ + maxQ) / 2),
-    centerR: Math.floor((minR + maxR) / 2),
-  };
-}
-
-/**
- * Add a small terrain piece to fill a large gap.
- */
-function addGapFiller(
-  hexes: Record<string, HexData>,
-  occupied: Set<string>,
-  centerQ: number,
-  centerR: number,
-  columns: number,
-  rows: number,
-  available: TerrainPreset[],
-  random: () => number
-): void {
-  // Find an open hex at or near center
-  let q = centerQ;
-  let r = centerR;
-  const id = hexId(q, r);
-
-  if (occupied.has(id) || hexes[id]?.terrain !== 'open') {
-    // Find nearby open hex
-    const neighbors = getValidNeighbors(q, r, columns, rows);
-    const open = neighbors.find((n) => {
-      const nId = hexId(n.q, n.r);
-      return !occupied.has(nId) && hexes[nId]?.terrain === 'open';
-    });
-    if (!open) return;
-    q = open.q;
-    r = open.r;
-  }
-
-  // Pick a cover terrain (not blocking, to avoid over-blocking the map)
-  const coverTerrains = available.filter((t) => t.properties.cover && !t.properties.blocking);
-  const terrain =
-    coverTerrains.length > 0 ? pickRandom(coverTerrains, random) : pickRandom(available, random);
-
-  // Place small cluster (3-4 hexes)
-  const targetId = hexId(q, r);
-  hexes[targetId].terrain = terrain.id;
-  hexes[targetId].class = `terrain-${terrain.id}`;
-  occupied.add(targetId);
-
-  const neighbors = shuffleArray(getValidNeighbors(q, r, columns, rows), random);
-  let added = 0;
-  for (const n of neighbors) {
-    if (added >= 3) break;
-    const nId = hexId(n.q, n.r);
-    if (!occupied.has(nId) && hexes[nId]?.terrain === 'open') {
-      hexes[nId].terrain = terrain.id;
-      hexes[nId].class = `terrain-${terrain.id}`;
-      occupied.add(nId);
-      added++;
-    }
-  }
-}
-
-// =============================================================================
-// LOS VALIDATION
-// =============================================================================
-
-/**
- * Ensure no clear line of sight from deployment edge to deployment edge.
- * Deployment is along top/bottom (36-hex sides), so we check COLUMNS for blockers.
- * Each column should have at least one LOS-blocking piece to prevent north-south sightlines.
- */
-function ensureNoEdgeToEdgeLOS(
-  hexes: Record<string, HexData>,
-  occupied: Set<string>,
-  columns: number,
-  rows: number,
-  available: TerrainPreset[],
-  random: () => number
-): void {
-  // Check each column for LOS blockers (prevents top-to-bottom sightlines)
-  // We check every 3 columns to ensure good coverage without over-blocking
-  for (let q = 2; q < columns - 2; q += 3) {
-    if (!columnHasLOSBlocker(hexes, q, rows)) {
-      // Place blocker at a random vertical position (not too close to edges)
-      const r = randomInt(4, rows - 5, random);
-      addLOSBlocker(hexes, occupied, q, r, columns, rows, available, random);
-    }
-  }
-}
-
-function columnHasLOSBlocker(hexes: Record<string, HexData>, q: number, rows: number): boolean {
-  for (let r = 0; r < rows; r++) {
-    const hex = hexes[hexId(q, r)];
-    if (hex && hex.terrain !== 'open') {
-      const preset = TERRAIN_PRESETS[hex.terrain];
-      if (preset && (preset.losType === 'blocking' || preset.losType === 'partial')) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-/**
- * Add a small LOS-blocking terrain piece at the specified position.
- */
-function addLOSBlocker(
-  hexes: Record<string, HexData>,
-  occupied: Set<string>,
-  targetQ: number,
-  targetR: number,
-  columns: number,
-  rows: number,
-  available: TerrainPreset[],
-  random: () => number
-): void {
-  // Find a blocking terrain type
-  const blockers = available.filter((t) => t.losType === 'blocking' || t.losType === 'partial');
-  if (blockers.length === 0) return;
-
-  const terrain = pickRandom(blockers, random);
-
-  // Search for open hex near target position
-  for (let offset = 0; offset <= 4; offset++) {
-    for (const dR of [0, offset, -offset]) {
-      for (const dQ of [0, offset, -offset]) {
-        const q = targetQ + dQ;
-        const r = targetR + dR;
-        if (q < 2 || q >= columns - 2 || r < 2 || r >= rows - 2) continue;
-
-        const id = hexId(q, r);
-        if (!occupied.has(id) && hexes[id]?.terrain === 'open') {
-          // Place small cluster (2-3 hexes)
-          hexes[id].terrain = terrain.id;
-          hexes[id].class = `terrain-${terrain.id}`;
-          occupied.add(id);
-
-          // Add 1-2 adjacent hexes
-          const neighbors = shuffleArray(getValidNeighbors(q, r, columns, rows), random);
-          let added = 0;
-          for (const n of neighbors) {
-            if (added >= 2) break;
-            const nId = hexId(n.q, n.r);
-            if (!occupied.has(nId) && hexes[nId]?.terrain === 'open') {
-              hexes[nId].terrain = terrain.id;
-              hexes[nId].class = `terrain-${terrain.id}`;
-              occupied.add(nId);
-              added++;
-            }
-          }
-          return;
-        }
-      }
-    }
-  }
-}
-
-// =============================================================================
-// ELEVATION SYSTEM
-// =============================================================================
-
-function addElevation(
-  hexes: Record<string, HexData>,
-  pieces: PlacedPiece[],
-  columns: number,
-  rows: number,
-  config: GeneratorConfig,
-  random: () => number
-): void {
-  const maxElev = config.elevationMax;
-  const intensity = config.elevationIntensity;
-
-  // Apply base elevation to terrain with inherent elevation (hills, mountains, etc.)
-  for (const piece of pieces) {
-    const preset = TERRAIN_PRESETS[piece.terrainId];
-    if (!preset?.baseElevation) continue;
-
-    // Scale terrain elevation based on intensity and max
-    let elev = preset.baseElevation;
-
-    // At high intensity, boost terrain elevation toward max
-    if (intensity > 0.6 && elev < maxElev) {
-      elev = Math.min(elev + Math.floor(intensity * 2), maxElev);
-    }
-
-    elev = Math.min(elev, maxElev);
-    if (elev <= 0) continue;
-
-    // Set elevation for all hexes in piece
-    for (const hId of piece.hexes) {
-      hexes[hId].elevation = elev;
-    }
-
-    // Special handling for towers - add rubble/ruins ramps
-    if (preset.id === 'tower') {
-      createTowerRamps(hexes, piece, elev, columns, rows, random);
-    } else if (elev >= 2) {
-      // Create standard ramps for other elevated terrain
-      createElevationRamps(hexes, piece, elev, columns, rows, random);
-    }
-
-    // Add peaks to large terrain pieces at high intensity
-    if (piece.hexes.size >= 5 && maxElev > elev && intensity > 0.5 && random() < intensity) {
-      const centerHex = hexes[hexId(piece.centerQ, piece.centerR)];
-      if (centerHex && piece.hexes.has(hexId(piece.centerQ, piece.centerR))) {
-        centerHex.elevation = Math.min(elev + 1, maxElev);
-      }
-    }
-  }
-
-  // Ensure all towers have elevation (in case baseElevation wasn't applied)
-  ensureTowerElevation(hexes, pieces, maxElev, intensity);
-
-  // Add dramatic elevation features based on intensity
-  addElevationFeatures(hexes, columns, rows, maxElev, intensity, random);
-
-  // CRITICAL: Validate all elevation has proper ramps (climbable paths)
-  validateElevationRamps(hexes, columns, rows, random);
-}
-
-/**
- * Ensure all tower hexes have elevation - towers should never be at ground level.
- * Scans both pieces AND individual hexes to catch all towers.
- */
-function ensureTowerElevation(
-  hexes: Record<string, HexData>,
-  pieces: PlacedPiece[],
-  maxElev: number,
-  intensity: number
-): void {
-  const minTowerElev = Math.min(2 + Math.floor(intensity), maxElev);
-
-  // First pass: handle tower pieces
-  for (const piece of pieces) {
-    if (piece.terrainId !== 'tower') continue;
-
-    for (const hId of piece.hexes) {
-      const hex = hexes[hId];
-      if (hex && hex.elevation < minTowerElev) {
-        hex.elevation = minTowerElev;
-      }
-    }
-  }
-
-  // Second pass: scan ALL hexes for tower terrain (catches any we missed)
-  for (const hex of Object.values(hexes)) {
-    if (hex.terrain === 'tower' && hex.elevation < minTowerElev) {
-      hex.elevation = minTowerElev;
-    }
-  }
-}
-
-/**
- * Create ramps for towers using rubble/ruins terrain.
- * Towers need adjacent lower-elevation hexes that units can climb.
- */
-function createTowerRamps(
-  hexes: Record<string, HexData>,
-  piece: PlacedPiece,
-  towerElev: number,
-  columns: number,
-  rows: number,
-  random: () => number
-): void {
-  // Find adjacent open hexes
-  const adjacent: Array<{ id: string; q: number; r: number }> = [];
-  for (const hId of piece.hexes) {
-    const hex = hexes[hId];
-    for (const n of getValidNeighbors(hex.q, hex.r, columns, rows)) {
-      const nId = hexId(n.q, n.r);
-      if (!piece.hexes.has(nId) && hexes[nId]?.terrain === 'open' && hexes[nId]?.elevation === 0) {
-        adjacent.push({ id: nId, q: n.q, r: n.r });
-      }
-    }
-  }
-
-  if (adjacent.length === 0) return;
-
-  // Create 1-2 rubble ramps adjacent to tower
-  const unique = [...new Map(adjacent.map((a) => [a.id, a])).values()];
-  const shuffled = shuffleArray(unique, random);
-  const numRamps = Math.min(shuffled.length, randomInt(1, 2, random));
-
-  for (let i = 0; i < numRamps; i++) {
-    const rampHex = hexes[shuffled[i].id];
-    // Rubble as scaffolding/debris to climb
-    rampHex.terrain = 'rubble';
-    rampHex.class = 'terrain-rubble';
-    rampHex.elevation = towerElev - 1;
-
-    // If tower is +3 or higher, need another step down
-    if (towerElev >= 3) {
-      const rampNeighbors = getValidNeighbors(shuffled[i].q, shuffled[i].r, columns, rows);
-      for (const rn of rampNeighbors) {
-        const rnId = hexId(rn.q, rn.r);
-        const rnHex = hexes[rnId];
-        if (rnHex && rnHex.terrain === 'open' && rnHex.elevation === 0 && !piece.hexes.has(rnId)) {
-          rnHex.terrain = 'rubble';
-          rnHex.class = 'terrain-rubble';
-          rnHex.elevation = towerElev - 2;
-
-          // If tower is +4, need one more step
-          if (towerElev >= 4) {
-            const step3Neighbors = getValidNeighbors(rn.q, rn.r, columns, rows);
-            for (const s3 of step3Neighbors) {
-              const s3Id = hexId(s3.q, s3.r);
-              const s3Hex = hexes[s3Id];
-              if (s3Hex && s3Hex.terrain === 'open' && s3Hex.elevation === 0) {
-                s3Hex.elevation = 1; // Just elevation, keep as open
-                break;
-              }
-            }
-          }
-          break;
-        }
-      }
-    }
-  }
-}
-
-/**
- * Create ramps (intermediate elevation hexes) around elevated terrain.
- */
-function createElevationRamps(
-  hexes: Record<string, HexData>,
-  piece: PlacedPiece,
-  pieceElev: number,
-  columns: number,
-  rows: number,
-  random: () => number
-): void {
-  // Find adjacent open hexes at ground level
-  const adjacent: string[] = [];
-  for (const hId of piece.hexes) {
-    const hex = hexes[hId];
-    for (const n of getValidNeighbors(hex.q, hex.r, columns, rows)) {
-      const nId = hexId(n.q, n.r);
-      if (!piece.hexes.has(nId) && hexes[nId]?.terrain === 'open' && hexes[nId]?.elevation === 0) {
-        adjacent.push(nId);
-      }
-    }
-  }
-
-  // Create ramp hexes stepping down from piece elevation
-  const unique = [...new Set(adjacent)];
-  const shuffled = shuffleArray(unique, random);
-  const numRamps = Math.min(shuffled.length, randomInt(2, 4, random));
-
-  for (let i = 0; i < numRamps; i++) {
-    // Ramp is one level below the piece
-    hexes[shuffled[i]].elevation = Math.max(1, pieceElev - 1);
-  }
-}
-
-/**
- * Add dramatic elevation features: plateaus, ridges, trenches, cliffs.
- * This is where the real elevation drama comes from.
- */
-function addElevationFeatures(
-  hexes: Record<string, HexData>,
-  columns: number,
-  rows: number,
-  maxElev: number,
-  intensity: number,
-  random: () => number
-): void {
-  // =========================================================================
-  // PLATEAUS - Large elevated areas at max or near-max elevation
-  // =========================================================================
-  if (intensity > 0.3 && maxElev >= 2) {
-    const numPlateaus = Math.floor(1 + intensity * 3); // 1-4 plateaus
-
-    for (let i = 0; i < numPlateaus; i++) {
-      const q = randomInt(4, columns - 5, random);
-      const r = randomInt(4, rows - 5, random);
-      const hex = hexes[hexId(q, r)];
-
-      if (hex && hex.terrain === 'open' && hex.elevation === 0) {
-        // Plateau elevation scales with intensity and maxElev
-        // High intensity = use max elevation
-        const plateauElev =
-          intensity > 0.7 ? maxElev : Math.max(2, Math.floor(maxElev * (0.5 + intensity * 0.5)));
-
-        // Grow plateau cluster
-        const plateauSize = Math.floor(5 + intensity * 10); // 5-15 hexes
-        const plateauHexes = growElevationCluster(
-          hexes,
-          q,
-          r,
-          plateauElev,
-          plateauSize,
-          columns,
-          rows,
-          random
-        );
-
-        // Add ramps around plateau
-        addClusterRamps(hexes, plateauHexes, plateauElev, columns, rows, random);
-      }
-    }
-  }
-
-  // =========================================================================
-  // RIDGES - Linear elevated features
-  // =========================================================================
-  if (intensity > 0.4 && maxElev >= 2) {
-    const numRidges = Math.floor(intensity * 2); // 0-2 ridges
-
-    for (let i = 0; i < numRidges; i++) {
-      const startQ = randomInt(3, columns - 4, random);
-      const startR = randomInt(3, rows - 4, random);
-      const hex = hexes[hexId(startQ, startR)];
-
-      if (hex && hex.terrain === 'open' && hex.elevation === 0) {
-        const ridgeElev = Math.max(2, Math.floor(maxElev * (0.6 + intensity * 0.4)));
-        const ridgeLength = Math.floor(6 + intensity * 8); // 6-14 hexes
-
-        growRidge(hexes, startQ, startR, ridgeElev, ridgeLength, columns, rows, random);
-      }
-    }
-  }
-
-  // =========================================================================
-  // TRENCHES - Deep depressions (-1 to -2)
-  // =========================================================================
-  if (intensity > 0.4) {
-    const numTrenches = Math.floor(intensity * 3); // 0-3 trenches
-
-    for (let i = 0; i < numTrenches; i++) {
-      const q = randomInt(4, columns - 5, random);
-      const r = randomInt(4, rows - 5, random);
-      const hex = hexes[hexId(q, r)];
-
-      if (hex && hex.terrain === 'open' && hex.elevation === 0) {
-        // Trench depth: -1 at medium intensity, -2 at high
-        const trenchDepth = intensity > 0.7 ? -2 : -1;
-        const trenchSize = Math.floor(3 + intensity * 6); // 3-9 hexes
-
-        growElevationCluster(hexes, q, r, trenchDepth, trenchSize, columns, rows, random);
-      }
-    }
-  }
-
-  // =========================================================================
-  // SCATTERED ELEVATION - Individual hex variations
-  // =========================================================================
-  const scatterChance = 0.02 + intensity * 0.08; // 2% at low, 10% at high
-
-  for (const hex of Object.values(hexes)) {
-    if (hex.terrain === 'open' && hex.elevation === 0 && random() < scatterChance) {
-      if (random() < 0.7) {
-        // Mostly +1 bumps
-        hex.elevation = 1;
-      } else if (intensity > 0.5 && maxElev >= 2 && random() < 0.5) {
-        // Some +2 at high intensity
-        hex.elevation = 2;
-      } else {
-        // Some -1 dips
-        hex.elevation = -1;
-      }
-    }
-  }
-
-  // =========================================================================
-  // SMALL ELEVATION CLUSTERS - Medium-sized features
-  // =========================================================================
-  const numSmallClusters = Math.floor(2 + intensity * 6); // 2-8 clusters
-
-  for (let i = 0; i < numSmallClusters; i++) {
-    const q = randomInt(3, columns - 4, random);
-    const r = randomInt(3, rows - 4, random);
-    const hex = hexes[hexId(q, r)];
-
-    if (hex && hex.terrain === 'open' && hex.elevation === 0) {
-      // Cluster elevation varies
-      let clusterElev: number;
-      const roll = random();
-
-      if (roll < 0.5) {
-        clusterElev = 1;
-      } else if (roll < 0.75 && maxElev >= 2) {
-        clusterElev = 2;
-      } else if (roll < 0.9 && maxElev >= 3 && intensity > 0.6) {
-        clusterElev = 3;
-      } else if (maxElev >= 4 && intensity > 0.8) {
-        clusterElev = 4;
-      } else {
-        clusterElev = -1; // Depression
-      }
-
-      const clusterSize = Math.floor(2 + intensity * 4); // 2-6 hexes
-      const clusterHexes = growElevationCluster(
-        hexes,
-        q,
-        r,
-        clusterElev,
-        clusterSize,
-        columns,
-        rows,
-        random
-      );
-
-      // Add ramps for elevated clusters
-      if (clusterElev >= 2) {
-        addClusterRamps(hexes, clusterHexes, clusterElev, columns, rows, random);
-      }
-    }
-  }
-}
-
-/**
- * Grow an elevation cluster organically from a starting point.
- */
-function growElevationCluster(
-  hexes: Record<string, HexData>,
-  startQ: number,
-  startR: number,
-  elevation: number,
-  targetSize: number,
-  columns: number,
-  rows: number,
-  random: () => number
-): Set<string> {
-  const cluster = new Set<string>();
-  const startId = hexId(startQ, startR);
-
-  hexes[startId].elevation = elevation;
-  cluster.add(startId);
-
-  const frontier = [{ q: startQ, r: startR }];
-
-  while (cluster.size < targetSize && frontier.length > 0) {
-    const idx = Math.floor(random() * frontier.length);
-    const current = frontier[idx];
-    const neighbors = shuffleArray(getValidNeighbors(current.q, current.r, columns, rows), random);
-
-    let added = false;
-    for (const n of neighbors) {
-      const nId = hexId(n.q, n.r);
-      const nHex = hexes[nId];
-
-      if (nHex && nHex.terrain === 'open' && nHex.elevation === 0 && !cluster.has(nId)) {
-        nHex.elevation = elevation;
-        cluster.add(nId);
-        frontier.push(n);
-        added = true;
+  // Block LOS from top to bottom (deployment edges)
+  // Strategic rows divide the map into quarters vertically
+  const strategicRows = [6, 12, 18]; // Roughly quarters of the 24-row grid
+  const requiredCount = strict ? 3 : 2; // Strict = all 3, Relaxed = any 2
+
+  let blockedCount = 0;
+  const unblockedRows: number[] = [];
+
+  for (const row of strategicRows) {
+    let hasBlocker = false;
+    for (let col = 0; col < GRID_COLUMNS; col++) {
+      if (grid[col][row].terrain === 'blocking') {
+        hasBlocker = true;
         break;
       }
     }
-
-    // Remove exhausted positions from frontier
-    if (!added) {
-      frontier.splice(idx, 1);
+    if (hasBlocker) {
+      blockedCount++;
+    } else {
+      unblockedRows.push(row);
     }
   }
 
-  return cluster;
+  // Add blocking terrain to meet requirement
+  const needed = requiredCount - blockedCount;
+  for (let i = 0; i < needed && i < unblockedRows.length; i++) {
+    const row = unblockedRows[i];
+    const col = randomInt(6, GRID_COLUMNS - 7, random);
+    const piece = growPiece(grid, col, row, randomInt(4, 8, random), occupied, random);
+    if (piece.size > 0) {
+      applyTerrain(grid, piece, 'blocking', occupied);
+    } else {
+      // Fallback: force place blocking hex somewhere in this row
+      // Try multiple positions across the row
+      let placed = false;
+      for (let attempt = 0; attempt < 10 && !placed; attempt++) {
+        const tryCol = randomInt(0, GRID_COLUMNS - 1, random);
+        const key = hexKey(tryCol, row);
+        if (!occupied.has(key) && grid[tryCol][row].terrain === 'open') {
+          grid[tryCol][row].terrain = 'blocking';
+          occupied.add(key);
+          placed = true;
+        }
+      }
+      // Last resort: overwrite any non-blocking terrain in this row
+      if (!placed) {
+        for (let c = 0; c < GRID_COLUMNS; c++) {
+          if (grid[c][row].terrain !== 'blocking') {
+            grid[c][row].terrain = 'blocking';
+            occupied.add(hexKey(c, row));
+            break;
+          }
+        }
+      }
+    }
+  }
 }
 
-/**
- * Grow a linear ridge feature.
- */
-function growRidge(
-  hexes: Record<string, HexData>,
-  startQ: number,
-  startR: number,
-  elevation: number,
-  length: number,
-  columns: number,
-  rows: number,
-  random: () => number
+function addElevation(grid: HexGrid, config: GeneratorConfig, random: () => number): void {
+  if (!config.elevation.enabled) return;
+  const { maxLevel, intensity } = config.elevation;
+  const numClusters = Math.floor(3 + intensity * 8);
+
+  // For symmetry, only place on top half then mirror
+  const rowMax = config.symmetry ? Math.floor(GRID_ROWS / 2) - 1 : GRID_ROWS - 4;
+
+  for (let i = 0; i < numClusters; i++) {
+    const col = randomInt(3, GRID_COLUMNS - 4, random);
+    const row = randomInt(3, rowMax, random);
+    const hex = grid[col][row];
+    const props = TERRAIN_PROPERTIES[hex.terrain];
+    if (props.blocking || props.impassable) continue;
+
+    let level: number;
+    const roll = random();
+    if (roll < 0.1 && maxLevel >= 3) level = randomInt(3, maxLevel, random);
+    else if (roll < 0.3 && maxLevel >= 2) level = 2;
+    else if (roll < 0.7) level = 1;
+    else level = -1;
+
+    growElevationCluster(
+      grid,
+      col,
+      row,
+      level,
+      Math.floor(3 + intensity * 6),
+      random,
+      config.symmetry
+    );
+  }
+
+  // Mirror elevation if symmetry enabled
+  if (config.symmetry) {
+    const midRow = Math.floor(GRID_ROWS / 2);
+    for (let col = 0; col < GRID_COLUMNS; col++) {
+      for (let row = 0; row < midRow; row++) {
+        if (grid[col][row].elevation !== 0) {
+          const mirrorRow = GRID_ROWS - 1 - row;
+          const mirrorHex = grid[col][mirrorRow];
+          const props = TERRAIN_PROPERTIES[mirrorHex.terrain];
+          if (!props.blocking && !props.impassable) {
+            mirrorHex.elevation = grid[col][row].elevation;
+          }
+        }
+      }
+    }
+  }
+
+  const scatterChance = 0.02 + intensity * 0.05;
+  const scatterRowMax = config.symmetry ? Math.floor(GRID_ROWS / 2) : GRID_ROWS;
+  for (let col = 0; col < GRID_COLUMNS; col++) {
+    for (let row = 0; row < scatterRowMax; row++) {
+      const hex = grid[col][row];
+      const props = TERRAIN_PROPERTIES[hex.terrain];
+      if (props.blocking || props.impassable || hex.elevation !== 0) continue;
+      if (chance(scatterChance, random)) {
+        hex.elevation = chance(0.7, random) ? 1 : -1;
+        if (config.symmetry) {
+          const mirrorRow = GRID_ROWS - 1 - row;
+          const mirrorHex = grid[col][mirrorRow];
+          const mirrorProps = TERRAIN_PROPERTIES[mirrorHex.terrain];
+          if (!mirrorProps.blocking && !mirrorProps.impassable) {
+            mirrorHex.elevation = hex.elevation;
+          }
+        }
+      }
+    }
+  }
+  validateElevationRamps(grid, random);
+}
+
+function growElevationCluster(
+  grid: HexGrid,
+  startCol: number,
+  startRow: number,
+  level: number,
+  targetSize: number,
+  random: () => number,
+  symmetry: boolean
 ): void {
-  const direction = randomInt(0, 5, random);
-  let q = startQ;
-  let r = startR;
+  const visited = new Set<string>();
+  const frontier = [{ col: startCol, row: startRow }];
+  grid[startCol][startRow].elevation = level;
+  visited.add(hexKey(startCol, startRow));
 
-  for (let i = 0; i < length; i++) {
-    const id = hexId(q, r);
-    const hex = hexes[id];
+  const rowMax = symmetry ? Math.floor(GRID_ROWS / 2) - 1 : GRID_ROWS - 1;
 
-    if (!hex || hex.terrain !== 'open') break;
-    if (hex.elevation !== 0 && hex.elevation !== elevation) break;
-
-    hex.elevation = elevation;
-
-    // Add some width to the ridge
-    const neighbors = getValidNeighbors(q, r, columns, rows);
+  while (visited.size < targetSize && frontier.length > 0) {
+    const idx = Math.floor(random() * frontier.length);
+    const current = frontier[idx];
+    const neighbors = shuffleArray([...getValidNeighbors(current.col, current.row)], random);
+    let added = false;
     for (const n of neighbors) {
-      if (random() < 0.3) {
-        const nHex = hexes[hexId(n.q, n.r)];
-        if (nHex && nHex.terrain === 'open' && nHex.elevation === 0) {
-          nHex.elevation = elevation;
-        }
-      }
+      if (n.row > rowMax) continue; // Respect symmetry boundary
+      const key = hexKey(n.col, n.row);
+      if (visited.has(key)) continue;
+      const hex = grid[n.col][n.row];
+      const props = TERRAIN_PROPERTIES[hex.terrain];
+      if (props.blocking || props.impassable) continue;
+      hex.elevation = level;
+      visited.add(key);
+      frontier.push(n);
+      added = true;
+      break;
     }
-
-    // Move in the general direction with some wobble
-    const nextDir = (direction + randomInt(-1, 1, random) + 6) % 6;
-    const validNeighbors = getValidNeighbors(q, r, columns, rows);
-    if (validNeighbors.length === 0) break;
-
-    const next = validNeighbors[nextDir % validNeighbors.length];
-    q = next.q;
-    r = next.r;
+    if (!added) frontier.splice(idx, 1);
   }
 }
 
-/**
- * Add ramp hexes around an elevated cluster.
- */
-function addClusterRamps(
-  hexes: Record<string, HexData>,
-  cluster: Set<string>,
-  clusterElev: number,
-  columns: number,
-  rows: number,
-  random: () => number
-): void {
-  const adjacent: Array<{ id: string; q: number; r: number }> = [];
-
-  for (const hId of cluster) {
-    const hex = hexes[hId];
-    for (const n of getValidNeighbors(hex.q, hex.r, columns, rows)) {
-      const nId = hexId(n.q, n.r);
-      if (!cluster.has(nId) && hexes[nId]?.terrain === 'open' && hexes[nId]?.elevation === 0) {
-        adjacent.push({ id: nId, q: n.q, r: n.r });
-      }
-    }
-  }
-
-  // Add ramps at intermediate elevations
-  const unique = [...new Map(adjacent.map((a) => [a.id, a])).values()];
-  const shuffled = shuffleArray(unique, random);
-  const numRamps = Math.min(shuffled.length, Math.floor(cluster.size * 0.5) + 1);
-
-  for (let i = 0; i < numRamps; i++) {
-    const rampElev = Math.max(1, clusterElev - 1);
-    hexes[shuffled[i].id].elevation = rampElev;
-
-    // For very high elevations, add additional ramp steps
-    if (clusterElev >= 3 && i < numRamps / 2) {
-      const rampNeighbors = getValidNeighbors(shuffled[i].q, shuffled[i].r, columns, rows);
-      for (const rn of rampNeighbors) {
-        const rnId = hexId(rn.q, rn.r);
-        if (hexes[rnId]?.terrain === 'open' && hexes[rnId]?.elevation === 0 && random() < 0.4) {
-          hexes[rnId].elevation = Math.max(1, rampElev - 1);
-          break;
+function validateElevationRamps(grid: HexGrid, random: () => number): void {
+  for (let targetLevel = 4; targetLevel >= 2; targetLevel--) {
+    for (let col = 0; col < GRID_COLUMNS; col++) {
+      for (let row = 0; row < GRID_ROWS; row++) {
+        const hex = grid[col][row];
+        if (hex.elevation !== targetLevel) continue;
+        const neighbors = getValidNeighbors(col, row);
+        const hasRamp = neighbors.some((n) => grid[n.col][n.row].elevation === targetLevel - 1);
+        if (!hasRamp) {
+          const candidates = neighbors.filter((n) => {
+            const nHex = grid[n.col][n.row];
+            const props = TERRAIN_PROPERTIES[nHex.terrain];
+            return !props.blocking && !props.impassable && nHex.elevation < targetLevel;
+          });
+          if (candidates.length > 0) {
+            const chosen = pickRandom(candidates, random);
+            grid[chosen.col][chosen.row].elevation = targetLevel - 1;
+          }
         }
       }
     }
   }
-}
-
-/**
- * CRITICAL: Validate that all elevated hexes have proper ramp access.
- * Every +3 must have an adjacent +2, every +2 must have an adjacent +1, etc.
- * This ensures units can actually climb to elevated positions.
- */
-function validateElevationRamps(
-  hexes: Record<string, HexData>,
-  columns: number,
-  rows: number,
-  random: () => number
-): void {
-  // Process from highest to lowest elevation
-  // This ensures we create complete ramp chains
-  for (let targetElev = 4; targetElev >= 2; targetElev--) {
-    for (const hex of Object.values(hexes)) {
-      if (hex.elevation !== targetElev) continue;
-
-      // Check if this hex has an adjacent hex at (elevation - 1)
-      const neighbors = getValidNeighbors(hex.q, hex.r, columns, rows);
-      const hasRamp = neighbors.some((n) => {
-        const nHex = hexes[hexId(n.q, n.r)];
-        return nHex && nHex.elevation === targetElev - 1;
-      });
-
+  for (let col = 0; col < GRID_COLUMNS; col++) {
+    for (let row = 0; row < GRID_ROWS; row++) {
+      const hex = grid[col][row];
+      if (hex.elevation !== -2) continue;
+      const neighbors = getValidNeighbors(col, row);
+      const hasRamp = neighbors.some((n) => grid[n.col][n.row].elevation === -1);
       if (!hasRamp) {
-        // Need to create a ramp - find best candidate
         const candidates = neighbors.filter((n) => {
-          const nHex = hexes[hexId(n.q, n.r)];
-          // Prefer open terrain, but can use any non-impassable
-          if (!nHex) return false;
-          const preset = TERRAIN_PRESETS[nHex.terrain];
-          if (preset?.properties.impassable) return false;
-          // Don't overwrite higher elevations
-          if (nHex.elevation >= targetElev) return false;
-          return true;
+          const nHex = grid[n.col][n.row];
+          const props = TERRAIN_PROPERTIES[nHex.terrain];
+          return !props.blocking && !props.impassable && nHex.elevation > -2;
         });
-
         if (candidates.length > 0) {
-          // Pick a random candidate and set its elevation
-          const chosen = candidates[Math.floor(random() * candidates.length)];
-          const chosenHex = hexes[hexId(chosen.q, chosen.r)];
-          chosenHex.elevation = targetElev - 1;
+          const chosen = pickRandom(candidates, random);
+          grid[chosen.col][chosen.row].elevation = -1;
         }
       }
     }
   }
-
-  // Also validate negative elevations (-2 needs adjacent -1)
-  for (const hex of Object.values(hexes)) {
-    if (hex.elevation !== -2) continue;
-
-    const neighbors = getValidNeighbors(hex.q, hex.r, columns, rows);
-    const hasRamp = neighbors.some((n) => {
-      const nHex = hexes[hexId(n.q, n.r)];
-      return nHex && nHex.elevation === -1;
-    });
-
-    if (!hasRamp) {
-      const candidates = neighbors.filter((n) => {
-        const nHex = hexes[hexId(n.q, n.r)];
-        if (!nHex) return false;
-        const preset = TERRAIN_PRESETS[nHex.terrain];
-        if (preset?.properties.impassable) return false;
-        if (nHex.elevation <= -2) return false;
-        return true;
-      });
-
-      if (candidates.length > 0) {
-        const chosen = candidates[Math.floor(random() * candidates.length)];
-        hexes[hexId(chosen.q, chosen.r)].elevation = -1;
-      }
-    }
-  }
 }
 
-// =============================================================================
-// TOOLTIPS AND CLASSES
-// =============================================================================
+export function generateMap(config: GeneratorConfig): HexGrid {
+  const random = createSeededRandom(config.seed);
+  const grid = createEmptyGrid();
+  const occupied = new Set<string>();
 
-function updateHexTooltips(hexes: Record<string, HexData>): void {
-  for (const hex of Object.values(hexes)) {
-    const preset = TERRAIN_PRESETS[hex.terrain];
-    const parts: string[] = [preset?.name || 'Open'];
+  const budget = calculateTerrainBudget(config);
+  const sizeRange = getPieceSizeRange(config.pieceSize);
 
-    if (hex.elevation !== 0) {
-      const sign = hex.elevation > 0 ? '+' : '';
-      parts.push(`Elev ${sign}${hex.elevation}`);
-    }
+  let placedBlocking = 0;
+  let placedImpassable = 0;
+  let placedCover = 0;
+  let placedDifficult = 0;
+  let placedDangerous = 0;
+  let totalPlaced = 0;
+  let pieceCount = 0;
 
-    parts.push(coordToLabel(hex.q, hex.r));
-    hex.n = parts.join(' | ');
+  // For symmetry, we place on top half only, then mirror
+  const halfOnly = config.symmetry ? ('top' as const) : undefined;
+  const targetTotal = config.symmetry ? Math.ceil(budget.totalHexes / 2) : budget.totalHexes;
 
-    // Build CSS class string with terrain and elevation
-    const classes: string[] = [];
+  while (totalPlaced < targetTotal && pieceCount < 50) {
+    pieceCount++;
+    const needsBlocking =
+      placedBlocking < (config.symmetry ? budget.blockingHexes / 2 : budget.blockingHexes);
+    const needsImpassable =
+      placedImpassable < (config.symmetry ? budget.impassableHexes / 2 : budget.impassableHexes);
+    const needsCover = placedCover < (config.symmetry ? budget.coverHexes / 2 : budget.coverHexes);
+    const needsDifficult =
+      placedDifficult < (config.symmetry ? budget.difficultHexes / 2 : budget.difficultHexes);
+    const needsDangerous =
+      placedDangerous < (config.symmetry ? budget.dangerousHexes / 2 : budget.dangerousHexes);
 
-    // Add terrain class
-    if (hex.terrain !== 'open') {
-      classes.push(`terrain-${hex.terrain}`);
-    }
+    const terrain = selectTerrainType(
+      needsBlocking,
+      needsImpassable,
+      needsCover,
+      needsDifficult,
+      needsDangerous,
+      random
+    );
+    const spacing = getMinSpacing(config.clusterSpacing, pieceCount);
+    const position = findValidPosition(grid, occupied, random, spacing, halfOnly);
+    if (!position) continue;
 
-    // Add elevation class for topographic contour lines
-    if (hex.elevation > 0) {
-      classes.push(`elev-${hex.elevation}`);
-    } else if (hex.elevation < 0) {
-      classes.push(`elev-neg-${Math.abs(hex.elevation)}`);
-    }
+    const targetSize = randomInt(sizeRange.min, sizeRange.max, random);
+    const piece = growPiece(
+      grid,
+      position.col,
+      position.row,
+      targetSize,
+      occupied,
+      random,
+      halfOnly
+    );
+    if (piece.size === 0) continue;
 
-    hex.class = classes.join(' ') || undefined;
+    applyTerrain(grid, piece, terrain, occupied);
+
+    const props = TERRAIN_PROPERTIES[terrain];
+    if (props.blocking) placedBlocking += piece.size;
+    if (props.impassable && !props.blocking) placedImpassable += piece.size;
+    if (props.cover) placedCover += piece.size;
+    if (props.difficult) placedDifficult += piece.size;
+    if (props.dangerous) placedDangerous += piece.size;
+    totalPlaced += piece.size;
   }
-}
 
-// =============================================================================
-// DEBUG LOGGING
-// =============================================================================
+  // Mirror terrain if symmetry enabled
+  if (config.symmetry) {
+    mirrorTerrain(grid, occupied);
+  }
+
+  ensureLOSBlocking(grid, occupied, random, config.strictLOS);
+  addElevation(grid, config, random);
+
+  return grid;
+}

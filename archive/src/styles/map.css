@@ -1,0 +1,31 @@
+/* Map preview container */
+.map-preview {
+  background-color: #ffffff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* SVG fills container */
+.map-preview svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Hex label styling */
+.map-preview .hex-label {
+  font-family: system-ui, sans-serif;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* Contour lines */
+.map-preview .contour-line {
+  pointer-events: none;
+}
+
+/* Hover state */
+.map-preview .hex:hover polygon {
+  stroke: #000;
+  stroke-width: 1.5;
+}

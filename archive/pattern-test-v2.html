@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPR Terrain Patterns v2 — Distinct Patterns</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 2rem;
+      margin: 0;
+    }
+    h1 { margin-bottom: 0.5rem; }
+    .subtitle { color: #666; margin-bottom: 2rem; }
+    
+    .section-title {
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #ddd;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      max-width: 1400px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .card h3 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1rem;
+    }
+    
+    .card .props {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 0.75rem;
+    }
+    
+    .hex-cluster {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem;
+      background: #fafafa;
+      border-radius: 4px;
+    }
+    
+    .examples {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 0.5rem;
+      text-align: center;
+      font-style: italic;
+    }
+    
+    /* Actual size preview */
+    .actual-size-section {
+      margin-top: 3rem;
+      padding: 1.5rem;
+      background: white;
+      border-radius: 8px;
+    }
+    
+    .actual-size-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+    }
+    
+    .actual-hex-group {
+      text-align: center;
+    }
+    
+    .actual-hex-group .label {
+      font-size: 0.7rem;
+      color: #666;
+      margin-top: 0.25rem;
+    }
+    
+    .print-test {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #fffde7;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>OPR Terrain Patterns v2 — Distinct Patterns</h1>
+  <p class="subtitle">9 unique patterns optimized for 8mm hex readability. Each pattern is distinct at a glance.</p>
+  
+  <!-- SVG Pattern Definitions -->
+  <svg width="0" height="0" style="position: absolute;">
+    <defs>
+      <!-- 1. Open - empty white -->
+      <pattern id="p-open" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#ffffff"/>
+      </pattern>
+      
+      <!-- 2. Blocking - solid dark -->
+      <pattern id="p-blocking" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#1a1a1a"/>
+      </pattern>
+      
+      <!-- 3. Cover - scattered dots (larger, bolder) -->
+      <pattern id="p-cover" patternUnits="userSpaceOnUse" width="12" height="12">
+        <rect width="12" height="12" fill="#ffffff"/>
+        <circle cx="3" cy="3" r="2" fill="#222"/>
+        <circle cx="9" cy="9" r="2" fill="#222"/>
+      </pattern>
+      
+      <!-- 4. Difficult - bold diagonal stripes -->
+      <pattern id="p-difficult" patternUnits="userSpaceOnUse" width="8" height="8">
+        <rect width="8" height="8" fill="#ffffff"/>
+        <line x1="0" y1="8" x2="8" y2="0" stroke="#222" stroke-width="2.5"/>
+      </pattern>
+      
+      <!-- 5. Dangerous - bold X marks -->
+      <pattern id="p-dangerous" patternUnits="userSpaceOnUse" width="14" height="14">
+        <rect width="14" height="14" fill="#ffffff"/>
+        <line x1="3" y1="3" x2="11" y2="11" stroke="#222" stroke-width="2.5"/>
+        <line x1="11" y1="3" x2="3" y2="11" stroke="#222" stroke-width="2.5"/>
+      </pattern>
+      
+      <!-- 6. Cover + Difficult - dense stipple/speckle -->
+      <pattern id="p-cover-difficult" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#ffffff"/>
+        <circle cx="2" cy="2" r="1.5" fill="#222"/>
+        <circle cx="7" cy="3" r="1.5" fill="#222"/>
+        <circle cx="4" cy="7" r="1.5" fill="#222"/>
+        <circle cx="9" cy="8" r="1.5" fill="#222"/>
+      </pattern>
+      
+      <!-- 7. Cover + Dangerous - ring/donut pattern -->
+      <pattern id="p-cover-dangerous" patternUnits="userSpaceOnUse" width="14" height="14">
+        <rect width="14" height="14" fill="#ffffff"/>
+        <circle cx="7" cy="7" r="5" fill="none" stroke="#222" stroke-width="2.5"/>
+      </pattern>
+      
+      <!-- 8. Difficult + Dangerous - chevrons/zigzag -->
+      <pattern id="p-difficult-dangerous" patternUnits="userSpaceOnUse" width="12" height="12">
+        <rect width="12" height="12" fill="#ffffff"/>
+        <polyline points="0,8 6,2 12,8" fill="none" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+      </pattern>
+      
+      <!-- 9. All three - crosshatch grid -->
+      <pattern id="p-all-three" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#ffffff"/>
+        <line x1="0" y1="5" x2="10" y2="5" stroke="#222" stroke-width="2"/>
+        <line x1="5" y1="0" x2="5" y2="10" stroke="#222" stroke-width="2"/>
+      </pattern>
+    </defs>
+  </svg>
+
+  <h2 class="section-title">Large Preview (for pattern clarity)</h2>
+  <div class="grid">
+    <!-- 1. Open -->
+    <div class="card">
+      <h3>1. Open</h3>
+      <div class="props">No properties</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#p-open)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#p-open)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#p-open)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Roads, clearings, open ground</div>
+    </div>
+
+    <!-- 2. Blocking -->
+    <div class="card">
+      <h3>2. Impassable + Blocking</h3>
+      <div class="props">Cannot enter, blocks LOS</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#p-blocking)" stroke="#000" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#p-blocking)" stroke="#000" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#p-blocking)" stroke="#000" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Buildings, mountains, deep water</div>
+    </div>
+
+    <!-- 3. Cover -->
+    <div class="card">
+      <h3>3. Cover</h3>
+      <div class="props">+1 Defense when in/behind</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#p-cover)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#p-cover)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#p-cover)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Barricades, craters, low walls</div>
+    </div>
+
+    <!-- 4. Difficult -->
+    <div class="card">
+      <h3>4. Difficult</h3>
+      <div class="props">Max 6" movement</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#p-difficult)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#p-difficult)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#p-difficult)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Rubble, swamps, shallow water</div>
+    </div>
+
+    <!-- 5. Dangerous -->
+    <div class="card">
+      <h3>5. Dangerous</h3>
+      <div class="props">Roll Tough, 1 = wound</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#p-dangerous)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#p-dangerous)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#p-dangerous)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Lava, minefields, razor wire</div>
+    </div>
+
+    <!-- 6. Cover + Difficult -->
+    <div class="card">
+      <h3>6. Cover + Difficult</h3>
+      <div class="props">+1 Defense, max 6" move</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#p-cover-difficult)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#p-cover-difficult)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#p-cover-difficult)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Forests, fields, hills</div>
+    </div>
+
+    <!-- 7. Cover + Dangerous -->
+    <div class="card">
+      <h3>7. Cover + Dangerous</h3>
+      <div class="props">+1 Defense, wound on 1</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#p-cover-dangerous)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#p-cover-dangerous)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#p-cover-dangerous)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Toxic smog, unstable ruins</div>
+    </div>
+
+    <!-- 8. Difficult + Dangerous -->
+    <div class="card">
+      <h3>8. Difficult + Dangerous</h3>
+      <div class="props">Max 6" move, wound on 1</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#p-difficult-dangerous)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#p-difficult-dangerous)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#p-difficult-dangerous)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Death marsh, toxic rivers</div>
+    </div>
+
+    <!-- 9. All three -->
+    <div class="card">
+      <h3>9. Cover + Difficult + Dangerous</h3>
+      <div class="props">All three properties</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#p-all-three)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#p-all-three)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#p-all-three)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Deadly vegetation, carnivorous jungle</div>
+    </div>
+  </div>
+
+  <!-- Actual Print Size Section -->
+  <div class="actual-size-section">
+    <h2 style="margin-top: 0;">Actual Print Size (~8mm hexes)</h2>
+    <p style="color: #666; margin-bottom: 1.5rem;">
+      These hexes are rendered at approximately 8mm width (30px at 96dpi ≈ 8mm). 
+      This is how they'll appear on a printed map.
+    </p>
+    
+    <div class="actual-size-grid">
+      <!-- Each hex is ~30px wide = ~8mm at 96dpi -->
+      <div class="actual-hex-group">
+        <svg width="100" height="70" viewBox="0 0 100 70">
+          <polygon points="35,5 50,14 50,32 35,41 20,32 20,14" fill="url(#p-open)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="65,5 80,14 80,32 65,41 50,32 50,14" fill="url(#p-open)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="50,28 65,37 65,55 50,64 35,55 35,37" fill="url(#p-open)" stroke="#999" stroke-width="0.75"/>
+        </svg>
+        <div class="label">Open</div>
+      </div>
+      
+      <div class="actual-hex-group">
+        <svg width="100" height="70" viewBox="0 0 100 70">
+          <polygon points="35,5 50,14 50,32 35,41 20,32 20,14" fill="url(#p-blocking)" stroke="#000" stroke-width="0.75"/>
+          <polygon points="65,5 80,14 80,32 65,41 50,32 50,14" fill="url(#p-blocking)" stroke="#000" stroke-width="0.75"/>
+          <polygon points="50,28 65,37 65,55 50,64 35,55 35,37" fill="url(#p-blocking)" stroke="#000" stroke-width="0.75"/>
+        </svg>
+        <div class="label">Blocking</div>
+      </div>
+      
+      <div class="actual-hex-group">
+        <svg width="100" height="70" viewBox="0 0 100 70">
+          <polygon points="35,5 50,14 50,32 35,41 20,32 20,14" fill="url(#p-cover)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="65,5 80,14 80,32 65,41 50,32 50,14" fill="url(#p-cover)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="50,28 65,37 65,55 50,64 35,55 35,37" fill="url(#p-cover)" stroke="#999" stroke-width="0.75"/>
+        </svg>
+        <div class="label">Cover</div>
+      </div>
+      
+      <div class="actual-hex-group">
+        <svg width="100" height="70" viewBox="0 0 100 70">
+          <polygon points="35,5 50,14 50,32 35,41 20,32 20,14" fill="url(#p-difficult)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="65,5 80,14 80,32 65,41 50,32 50,14" fill="url(#p-difficult)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="50,28 65,37 65,55 50,64 35,55 35,37" fill="url(#p-difficult)" stroke="#999" stroke-width="0.75"/>
+        </svg>
+        <div class="label">Difficult</div>
+      </div>
+      
+      <div class="actual-hex-group">
+        <svg width="100" height="70" viewBox="0 0 100 70">
+          <polygon points="35,5 50,14 50,32 35,41 20,32 20,14" fill="url(#p-dangerous)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="65,5 80,14 80,32 65,41 50,32 50,14" fill="url(#p-dangerous)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="50,28 65,37 65,55 50,64 35,55 35,37" fill="url(#p-dangerous)" stroke="#999" stroke-width="0.75"/>
+        </svg>
+        <div class="label">Dangerous</div>
+      </div>
+      
+      <div class="actual-hex-group">
+        <svg width="100" height="70" viewBox="0 0 100 70">
+          <polygon points="35,5 50,14 50,32 35,41 20,32 20,14" fill="url(#p-cover-difficult)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="65,5 80,14 80,32 65,41 50,32 50,14" fill="url(#p-cover-difficult)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="50,28 65,37 65,55 50,64 35,55 35,37" fill="url(#p-cover-difficult)" stroke="#999" stroke-width="0.75"/>
+        </svg>
+        <div class="label">Cover+Difficult</div>
+      </div>
+      
+      <div class="actual-hex-group">
+        <svg width="100" height="70" viewBox="0 0 100 70">
+          <polygon points="35,5 50,14 50,32 35,41 20,32 20,14" fill="url(#p-cover-dangerous)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="65,5 80,14 80,32 65,41 50,32 50,14" fill="url(#p-cover-dangerous)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="50,28 65,37 65,55 50,64 35,55 35,37" fill="url(#p-cover-dangerous)" stroke="#999" stroke-width="0.75"/>
+        </svg>
+        <div class="label">Cover+Dangerous</div>
+      </div>
+      
+      <div class="actual-hex-group">
+        <svg width="100" height="70" viewBox="0 0 100 70">
+          <polygon points="35,5 50,14 50,32 35,41 20,32 20,14" fill="url(#p-difficult-dangerous)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="65,5 80,14 80,32 65,41 50,32 50,14" fill="url(#p-difficult-dangerous)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="50,28 65,37 65,55 50,64 35,55 35,37" fill="url(#p-difficult-dangerous)" stroke="#999" stroke-width="0.75"/>
+        </svg>
+        <div class="label">Difficult+Dangerous</div>
+      </div>
+      
+      <div class="actual-hex-group">
+        <svg width="100" height="70" viewBox="0 0 100 70">
+          <polygon points="35,5 50,14 50,32 35,41 20,32 20,14" fill="url(#p-all-three)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="65,5 80,14 80,32 65,41 50,32 50,14" fill="url(#p-all-three)" stroke="#999" stroke-width="0.75"/>
+          <polygon points="50,28 65,37 65,55 50,64 35,55 35,37" fill="url(#p-all-three)" stroke="#999" stroke-width="0.75"/>
+        </svg>
+        <div class="label">All Three</div>
+      </div>
+    </div>
+    
+    <div class="print-test">
+      <strong>Print Test:</strong> Use Ctrl+P (or Cmd+P) to print this page. The "Actual Print Size" section 
+      should show hexes at roughly 8mm width. Check if patterns are distinguishable on paper.
+    </div>
+  </div>
+
+  <!-- Pattern Summary -->
+  <div style="margin-top: 2rem; padding: 1.5rem; background: white; border-radius: 8px; max-width: 900px;">
+    <h2 style="margin-top: 0;">Pattern Design Rationale</h2>
+    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+      <tr style="border-bottom: 2px solid #ddd; background: #f9f9f9;">
+        <th style="padding: 0.75rem; text-align: left;">Pattern</th>
+        <th style="padding: 0.75rem; text-align: left;">Visual</th>
+        <th style="padding: 0.75rem; text-align: left;">Why This Works</th>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.75rem;"><strong>Open</strong></td>
+        <td style="padding: 0.75rem;">Empty white</td>
+        <td style="padding: 0.75rem;">Obvious absence of terrain</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.75rem;"><strong>Blocking</strong></td>
+        <td style="padding: 0.75rem;">Solid dark</td>
+        <td style="padding: 0.75rem;">Impenetrable = solid mass</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.75rem;"><strong>Cover</strong></td>
+        <td style="padding: 0.75rem;">Sparse dots</td>
+        <td style="padding: 0.75rem;">Things to hide behind, scattered obstacles</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.75rem;"><strong>Difficult</strong></td>
+        <td style="padding: 0.75rem;">Diagonal stripes</td>
+        <td style="padding: 0.75rem;">Classic "caution" pattern, impediment</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.75rem;"><strong>Dangerous</strong></td>
+        <td style="padding: 0.75rem;">X marks</td>
+        <td style="padding: 0.75rem;">Universal hazard symbol</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.75rem;"><strong>Cover + Difficult</strong></td>
+        <td style="padding: 0.75rem;">Dense stipple</td>
+        <td style="padding: 0.75rem;">More dots = more stuff (cover + impediment)</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.75rem;"><strong>Cover + Dangerous</strong></td>
+        <td style="padding: 0.75rem;">Rings/circles</td>
+        <td style="padding: 0.75rem;">Enclosed danger zone, distinct from X</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.75rem;"><strong>Difficult + Dangerous</strong></td>
+        <td style="padding: 0.75rem;">Chevrons</td>
+        <td style="padding: 0.75rem;">Angular = aggressive, warning arrows</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.75rem;"><strong>All Three</strong></td>
+        <td style="padding: 0.75rem;">Crosshatch grid</td>
+        <td style="padding: 0.75rem;">Busy = "everything applies here"</td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>

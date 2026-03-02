@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pattern to Terrain Mapping</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #f0f0f0; padding: 2rem; margin: 0; }
+    h1 { margin-bottom: 0.5rem; }
+    .subtitle { color: #666; margin-bottom: 2rem; }
+    .section { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .section h2 { margin: 0 0 1rem 0; font-size: 1rem; color: #333; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
+    .pattern-grid { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+    .pattern-card { text-align: center; min-width: 120px; }
+    .pattern-card .name { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; }
+    .pattern-card .suggestion { font-size: 0.75rem; color: #666; margin-top: 0.25rem; }
+    .hex-pair { display: flex; gap: 4px; justify-content: center; }
+    .size-label { font-size: 0.7rem; color: #999; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Pattern → Terrain Type Mapping</h1>
+  <p class="subtitle">All candidate patterns with suggested terrain mappings. Large + 8mm preview.</p>
+
+  <svg width="0" height="0" style="position:absolute;">
+    <defs>
+      <!-- Empty -->
+      <pattern id="p-empty" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#ffffff"/>
+      </pattern>
+      
+      <!-- Solid/Filled -->
+      <pattern id="p-solid" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#1a1a1a"/>
+      </pattern>
+      
+      <!-- Stipple (scattered small dots) -->
+      <pattern id="p-stipple" patternUnits="userSpaceOnUse" width="12" height="12">
+        <rect width="12" height="12" fill="#fff"/>
+        <circle cx="2" cy="3" r="1.5" fill="#222"/>
+        <circle cx="8" cy="2" r="1.5" fill="#222"/>
+        <circle cx="5" cy="7" r="1.5" fill="#222"/>
+        <circle cx="10" cy="9" r="1.5" fill="#222"/>
+        <circle cx="3" cy="11" r="1.5" fill="#222"/>
+      </pattern>
+      
+      <!-- Diagonal Lines (Field) -->
+      <pattern id="p-diagonal" patternUnits="userSpaceOnUse" width="8" height="8">
+        <rect width="8" height="8" fill="#fff"/>
+        <line x1="0" y1="8" x2="8" y2="0" stroke="#222" stroke-width="2.5"/>
+      </pattern>
+      
+      <!-- X Marks (Lava/Dangerous) -->
+      <pattern id="p-xmarks" patternUnits="userSpaceOnUse" width="14" height="14">
+        <rect width="14" height="14" fill="#fff"/>
+        <line x1="3" y1="3" x2="11" y2="11" stroke="#222" stroke-width="2.5"/>
+        <line x1="11" y1="3" x2="3" y2="11" stroke="#222" stroke-width="2.5"/>
+      </pattern>
+      
+      <!-- Crosshatch (Ruins) -->
+      <pattern id="p-crosshatch" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#fff"/>
+        <line x1="0" y1="0" x2="10" y2="10" stroke="#222" stroke-width="2"/>
+        <line x1="10" y1="0" x2="0" y2="10" stroke="#222" stroke-width="2"/>
+      </pattern>
+      
+      <!-- Horizontal Dash (Barricade) -->
+      <pattern id="p-barricade" patternUnits="userSpaceOnUse" width="14" height="10">
+        <rect width="14" height="10" fill="#fff"/>
+        <line x1="2" y1="5" x2="12" y2="5" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+      </pattern>
+      
+      <!-- Grid (Tower) -->
+      <pattern id="p-grid" patternUnits="userSpaceOnUse" width="10" height="10">
+        <rect width="10" height="10" fill="#fff"/>
+        <line x1="5" y1="0" x2="5" y2="10" stroke="#222" stroke-width="1.5"/>
+        <line x1="0" y1="5" x2="10" y2="5" stroke="#222" stroke-width="1.5"/>
+      </pattern>
+      
+      <!-- Wavy Lines (Shallow Water) -->
+      <pattern id="p-wavy" patternUnits="userSpaceOnUse" width="16" height="10">
+        <rect width="16" height="10" fill="#fff"/>
+        <path d="M0,5 Q4,1 8,5 T16,5" stroke="#222" stroke-width="2.5" fill="none"/>
+      </pattern>
+      
+      <!-- Circles -->
+      <pattern id="p-circles" patternUnits="userSpaceOnUse" width="14" height="14">
+        <rect width="14" height="14" fill="#fff"/>
+        <circle cx="7" cy="7" r="5" stroke="#222" stroke-width="2" fill="none"/>
+      </pattern>
+      
+      <!-- Squares -->
+      <pattern id="p-squares" patternUnits="userSpaceOnUse" width="14" height="14">
+        <rect width="14" height="14" fill="#fff"/>
+        <rect x="2" y="2" width="10" height="10" stroke="#222" stroke-width="2" fill="none"/>
+      </pattern>
+    </defs>
+  </svg>
+
+  <!-- OBVIOUS MAPPINGS -->
+  <div class="section">
+    <h2>Obvious Mappings (Locked In)</h2>
+    <div class="pattern-grid">
+      <div class="pattern-card">
+        <div class="name">Empty</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-empty)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-empty)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">→ <strong>Open</strong> (no properties)</div>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Solid</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-solid)" stroke="#000" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-solid)" stroke="#000" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">→ <strong>Impassable+Blocking</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COVER CANDIDATES -->
+  <div class="section">
+    <h2>Cover (only) — "+1 Defense"</h2>
+    <div class="pattern-grid">
+      <div class="pattern-card">
+        <div class="name">Stipple</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-stipple)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-stipple)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Scattered dots = scattered cover</div>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Barricade</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-barricade)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-barricade)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Barrier to hide behind</div>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Circles</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-circles)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-circles)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Enclosed protective zone</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIFFICULT CANDIDATES -->
+  <div class="section">
+    <h2>Difficult (only) — "Max 6\" move"</h2>
+    <div class="pattern-grid">
+      <div class="pattern-card">
+        <div class="name">Diagonal Lines</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-diagonal)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-diagonal)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Classic caution/impediment</div>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Wavy Lines</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-wavy)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-wavy)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Fluid/muddy ground</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DANGEROUS CANDIDATES -->
+  <div class="section">
+    <h2>Dangerous (only) — "Wound on 1"</h2>
+    <div class="pattern-grid">
+      <div class="pattern-card">
+        <div class="name">X Marks</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-xmarks)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-xmarks)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Universal hazard symbol</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COVER + DIFFICULT CANDIDATES -->
+  <div class="section">
+    <h2>Cover + Difficult — "+1 Defense, Max 6\" move" (most common combo)</h2>
+    <div class="pattern-grid">
+      <div class="pattern-card">
+        <div class="name">Wavy Lines</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-wavy)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-wavy)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Organic/natural (forests, fields)</div>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Stipple</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-stipple)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-stipple)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Dense scattered stuff</div>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Circles</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-circles)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-circles)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Contained dense zone</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COVER + DANGEROUS CANDIDATES -->
+  <div class="section">
+    <h2>Cover + Dangerous — "+1 Defense, Wound on 1"</h2>
+    <div class="pattern-grid">
+      <div class="pattern-card">
+        <div class="name">Crosshatch (Ruins)</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-crosshatch)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-crosshatch)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Broken/unstable structure</div>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Circles</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-circles)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-circles)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Danger zone with cover</div>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Grid (Tower)</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-grid)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-grid)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Structured but risky</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIFFICULT + DANGEROUS CANDIDATES -->
+  <div class="section">
+    <h2>Difficult + Dangerous — "Max 6\" move, Wound on 1"</h2>
+    <div class="pattern-grid">
+      <div class="pattern-card">
+        <div class="name">Squares</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-squares)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-squares)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Angular = harsh/mechanical</div>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Crosshatch (Ruins)</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-crosshatch)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-crosshatch)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Treacherous broken ground</div>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Grid (Tower)</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-grid)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-grid)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Complex hazardous terrain</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL THREE CANDIDATES -->
+  <div class="section">
+    <h2>Cover + Difficult + Dangerous — "All three properties"</h2>
+    <div class="pattern-grid">
+      <div class="pattern-card">
+        <div class="name">Grid (Tower)</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-grid)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-grid)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Busy = everything applies</div>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Crosshatch (Ruins)</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-crosshatch)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-crosshatch)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Dense, broken, deadly</div>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Squares</div>
+        <div class="hex-pair">
+          <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-squares)" stroke="#999" stroke-width="1"/></svg>
+          <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-squares)" stroke="#999" stroke-width="0.5"/></svg>
+        </div>
+        <div class="suggestion">Contained nightmare zone</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL PATTERNS SIDE BY SIDE -->
+  <div class="section">
+    <h2>All Candidate Patterns — Side by Side Comparison</h2>
+    <div class="pattern-grid">
+      <div class="pattern-card">
+        <div class="name">Empty</div>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-empty)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Solid</div>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-solid)" stroke="#000" stroke-width="0.5"/></svg>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Stipple</div>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-stipple)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Diagonal</div>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-diagonal)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+      <div class="pattern-card">
+        <div class="name">X Marks</div>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-xmarks)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Crosshatch</div>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-crosshatch)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Barricade</div>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-barricade)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Grid</div>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-grid)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Wavy</div>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-wavy)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Circles</div>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-circles)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+      <div class="pattern-card">
+        <div class="name">Squares</div>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-squares)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

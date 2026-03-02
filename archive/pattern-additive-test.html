@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Additive Pattern Test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f0f0f0; padding: 2rem; }
+    .section { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .section h2 { margin: 0 0 1rem 0; font-size: 1rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
+    .row { display: flex; gap: 2rem; align-items: center; margin-bottom: 1rem; }
+    .label { font-size: 0.85rem; min-width: 200px; }
+    .hexes { display: flex; gap: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Additive Pattern Test</h1>
+  <p>Testing combined patterns for dangerous combos</p>
+
+  <svg width="0" height="0" style="position:absolute;">
+    <defs>
+      <!-- Base patterns for reference -->
+      <!-- Rubble-style scattered squares (from current app) -->
+      <pattern id="p-cover-squares" patternUnits="userSpaceOnUse" width="50" height="50">
+        <rect width="50" height="50" fill="#fff"/>
+        <rect x="8" y="10" width="12" height="10" fill="#222" opacity="0.7" transform="rotate(15 14 15)"/>
+        <rect x="30" y="28" width="10" height="8" fill="#222" opacity="0.65" transform="rotate(-10 35 32)"/>
+        <rect x="18" y="38" width="8" height="6" fill="#222" opacity="0.6" transform="rotate(25 22 41)"/>
+        <rect x="38" y="8" width="7" height="9" fill="#222" opacity="0.6" transform="rotate(-20 41 12)"/>
+      </pattern>
+      
+      <pattern id="p-barricade" patternUnits="userSpaceOnUse" width="14" height="10">
+        <rect width="14" height="10" fill="#fff"/>
+        <line x1="2" y1="5" x2="12" y2="5" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+      </pattern>
+      
+      <pattern id="p-diagonal" patternUnits="userSpaceOnUse" width="14" height="14">
+        <rect width="14" height="14" fill="#fff"/>
+        <line x1="0" y1="14" x2="14" y2="0" stroke="#222" stroke-width="3" opacity="0.5"/>
+      </pattern>
+      
+      <pattern id="p-xmarks" patternUnits="userSpaceOnUse" width="14" height="14">
+        <rect width="14" height="14" fill="#fff"/>
+        <line x1="3" y1="3" x2="11" y2="11" stroke="#222" stroke-width="2.5"/>
+        <line x1="11" y1="3" x2="3" y2="11" stroke="#222" stroke-width="2.5"/>
+      </pattern>
+      
+      <pattern id="p-cover-difficult" patternUnits="userSpaceOnUse" width="28" height="28">
+        <rect width="28" height="28" fill="#fff"/>
+        <!-- Same diagonal as Difficult (14x14 scaled 2x), muted -->
+        <line x1="0" y1="14" x2="14" y2="0" stroke="#222" stroke-width="3" opacity="0.3"/>
+        <line x1="14" y1="28" x2="28" y2="14" stroke="#222" stroke-width="3" opacity="0.3"/>
+        <line x1="0" y1="28" x2="28" y2="0" stroke="#222" stroke-width="3" opacity="0.3"/>
+        <!-- Cover square on top -->
+        <rect x="6" y="7" width="12" height="10" fill="#222" opacity="0.7" transform="rotate(12 12 12)"/>
+      </pattern>
+      
+      <!-- ADDITIVE: Rubble squares + Tiny X's (Cover + Dangerous) -->
+      <pattern id="p-cover-dangerous" patternUnits="userSpaceOnUse" width="50" height="50">
+        <rect width="50" height="50" fill="#fff"/>
+        <!-- Rubble squares -->
+        <rect x="8" y="10" width="12" height="10" fill="#222" opacity="0.7" transform="rotate(15 14 15)"/>
+        <rect x="30" y="28" width="10" height="8" fill="#222" opacity="0.65" transform="rotate(-10 35 32)"/>
+        <rect x="18" y="38" width="8" height="6" fill="#222" opacity="0.6" transform="rotate(25 22 41)"/>
+        <rect x="38" y="8" width="7" height="9" fill="#222" opacity="0.6" transform="rotate(-20 41 12)"/>
+        <!-- Tiny X's for dangerous -->
+        <g stroke="#222" stroke-width="2">
+          <line x1="2" y1="2" x2="8" y2="8"/><line x1="8" y1="2" x2="2" y2="8"/>
+        </g>
+        <g stroke="#222" stroke-width="2">
+          <line x1="25" y1="18" x2="31" y2="24"/><line x1="31" y1="18" x2="25" y2="24"/>
+        </g>
+        <g stroke="#222" stroke-width="2">
+          <line x1="42" y1="42" x2="48" y2="48"/><line x1="48" y1="42" x2="42" y2="48"/>
+        </g>
+        <g stroke="#222" stroke-width="2">
+          <line x1="7" y1="28" x2="13" y2="34"/><line x1="13" y1="28" x2="7" y2="34"/>
+        </g>
+      </pattern>
+      
+      <!-- ADDITIVE: Diagonal + Tiny X's (Difficult + Dangerous) -->
+      <pattern id="p-difficult-dangerous" patternUnits="userSpaceOnUse" width="14" height="14">
+        <rect width="14" height="14" fill="#fff"/>
+        <!-- Same diagonal as Difficult -->
+        <line x1="0" y1="14" x2="14" y2="0" stroke="#222" stroke-width="3" opacity="0.5"/>
+        <!-- Tiny X's for dangerous -->
+        <g stroke="#222" stroke-width="1.5">
+          <line x1="2" y1="2" x2="5" y2="5"/><line x1="5" y1="2" x2="2" y2="5"/>
+        </g>
+        <g stroke="#222" stroke-width="1.5">
+          <line x1="9" y1="9" x2="12" y2="12"/><line x1="12" y1="9" x2="9" y2="12"/>
+        </g>
+      </pattern>
+      
+      <!-- Alternative: Wavy + X (if Cover+Difficult uses wavy, then Cover+Difficult+Dangerous?) -->
+      <pattern id="p-wavy-x" patternUnits="userSpaceOnUse" width="16" height="16">
+        <rect width="16" height="16" fill="#fff"/>
+        <!-- Wavy line -->
+        <path d="M0,8 Q4,4 8,8 T16,8" stroke="#222" stroke-width="2" fill="none"/>
+        <!-- X mark -->
+        <line x1="4" y1="4" x2="12" y2="12" stroke="#222" stroke-width="2.5"/>
+        <line x1="12" y1="4" x2="4" y2="12" stroke="#222" stroke-width="2.5"/>
+      </pattern>
+    </defs>
+  </svg>
+
+  <div class="section">
+    <h2>Base Patterns (for reference)</h2>
+    <div class="row">
+      <div class="label"><strong>Cover</strong> = Squares</div>
+      <div class="hexes">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-cover-squares)" stroke="#999" stroke-width="1"/></svg>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-cover-squares)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label"><strong>Difficult</strong> = Diagonal</div>
+      <div class="hexes">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-diagonal)" stroke="#999" stroke-width="1"/></svg>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-diagonal)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label"><strong>Dangerous</strong> = X Marks</div>
+      <div class="hexes">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-xmarks)" stroke="#999" stroke-width="1"/></svg>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-xmarks)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label"><strong>Cover + Difficult</strong> = Square + Muted Diagonals</div>
+      <div class="hexes">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-cover-difficult)" stroke="#999" stroke-width="1"/></svg>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-cover-difficult)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Additive Combos (New)</h2>
+    <div class="row">
+      <div class="label"><strong>Ruins (from app)</strong><br/>for comparison</div>
+      <div class="hexes">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-ruins)" stroke="#999" stroke-width="1"/></svg>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-ruins)" stroke="#999" stroke-width="0.5"/></svg>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label"><strong>Cover + Dangerous</strong><br/>= Squares + Tiny X's</div>
+      <div class="hexes">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-cover-dangerous)" stroke="#999" stroke-width="1"/></svg>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-cover-dangerous)" stroke="#999" stroke-width="0.5"/></svg>
+        <span style="color:#666;font-size:0.8rem;margin-left:1rem;">← 8mm size</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label"><strong>Difficult + Dangerous</strong><br/>= Diagonal + Tiny X's</div>
+      <div class="hexes">
+        <svg width="50" height="58"><polygon points="25,2 48,15 48,43 25,56 2,43 2,15" fill="url(#p-difficult-dangerous)" stroke="#999" stroke-width="1"/></svg>
+        <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-difficult-dangerous)" stroke="#999" stroke-width="0.5"/></svg>
+        <span style="color:#666;font-size:0.8rem;margin-left:1rem;">← 8mm size</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Full System at 8mm</h2>
+    <p style="color:#666;margin-bottom:1rem;">All 10 patterns at actual print size:</p>
+    <div class="row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="#fff" stroke="#999" stroke-width="0.5"/></svg>
+      <span style="font-size:0.8rem;">Open</span>
+    </div>
+    <div class="row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="#1a1a1a" stroke="#000" stroke-width="0.5"/></svg>
+      <span style="font-size:0.8rem;">Blocking (can't enter, can't see through)</span>
+    </div>
+    <div class="row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-impassable)" stroke="#999" stroke-width="0.5"/></svg>
+      <span style="font-size:0.8rem;">Impassable (can't enter, CAN see through)</span>
+    </div>
+    <div class="row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-cover-squares)" stroke="#999" stroke-width="0.5"/></svg>
+      <span style="font-size:0.8rem;">Cover</span>
+    </div>
+    <div class="row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-diagonal)" stroke="#999" stroke-width="0.5"/></svg>
+      <span style="font-size:0.8rem;">Difficult</span>
+    </div>
+    <div class="row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-xmarks)" stroke="#999" stroke-width="0.5"/></svg>
+      <span style="font-size:0.8rem;">Dangerous</span>
+    </div>
+    <div class="row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-cover-difficult)" stroke="#999" stroke-width="0.5"/></svg>
+      <span style="font-size:0.8rem;">Cover + Difficult</span>
+    </div>
+    <div class="row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-cover-dangerous)" stroke="#999" stroke-width="0.5"/></svg>
+      <span style="font-size:0.8rem;">Cover + Dangerous</span>
+    </div>
+    <div class="row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-difficult-dangerous)" stroke="#999" stroke-width="0.5"/></svg>
+      <span style="font-size:0.8rem;">Difficult + Dangerous</span>
+    </div>
+    <div class="row">
+      <svg width="32" height="37"><polygon points="16,1 31,10 31,27 16,36 1,27 1,10" fill="url(#p-crosshatch)" stroke="#999" stroke-width="0.5"/></svg>
+      <span style="font-size:0.8rem;">All Three</span>
+    </div>
+  </div>
+
+  <!-- Need to add crosshatch pattern -->
+  <svg width="0" height="0" style="position:absolute;">
+    <defs>
+      <!-- Ruins pattern (standalone, for comparison) - smaller tile for denser crosshatch -->
+      <pattern id="p-ruins" patternUnits="userSpaceOnUse" width="12" height="12">
+        <rect width="12" height="12" fill="#fff"/>
+        <line x1="0" y1="0" x2="12" y2="12" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="12" y1="0" x2="0" y2="12" stroke="#222" stroke-width="2" opacity="0.5"/>
+      </pattern>
+      
+      <!-- Impassable (non-blocking) - wavy horizontal lines on light gray (deep water, chasms) -->
+      <pattern id="p-impassable" patternUnits="userSpaceOnUse" width="20" height="12">
+        <rect width="20" height="12" fill="#e8e8e8"/>
+        <path d="M0,6 Q5,2 10,6 T20,6" stroke="#222" stroke-width="2.5" fill="none" opacity="0.6"/>
+      </pattern>
+      
+      <pattern id="p-crosshatch" patternUnits="userSpaceOnUse" width="50" height="50">
+        <rect width="50" height="50" fill="#fff"/>
+        <!-- Dense ruins crosshatch (12px spacing scaled up) -->
+        <line x1="0" y1="0" x2="12" y2="12" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="12" y1="0" x2="0" y2="12" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="12" y1="0" x2="24" y2="12" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="24" y1="0" x2="12" y2="12" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="24" y1="0" x2="36" y2="12" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="36" y1="0" x2="24" y2="12" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="36" y1="0" x2="48" y2="12" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="48" y1="0" x2="36" y2="12" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="0" y1="12" x2="12" y2="24" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="12" y1="12" x2="0" y2="24" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="12" y1="12" x2="24" y2="24" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="24" y1="12" x2="12" y2="24" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="24" y1="12" x2="36" y2="24" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="36" y1="12" x2="24" y2="24" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="36" y1="12" x2="48" y2="24" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="48" y1="12" x2="36" y2="24" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="0" y1="24" x2="12" y2="36" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="12" y1="24" x2="0" y2="36" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="12" y1="24" x2="24" y2="36" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="24" y1="24" x2="12" y2="36" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="24" y1="24" x2="36" y2="36" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="36" y1="24" x2="24" y2="36" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="36" y1="24" x2="48" y2="36" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="48" y1="24" x2="36" y2="36" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="0" y1="36" x2="12" y2="48" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="12" y1="36" x2="0" y2="48" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="12" y1="36" x2="24" y2="48" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="24" y1="36" x2="12" y2="48" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="24" y1="36" x2="36" y2="48" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="36" y1="36" x2="24" y2="48" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="36" y1="36" x2="48" y2="48" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <line x1="48" y1="36" x2="36" y2="48" stroke="#222" stroke-width="2" opacity="0.5"/>
+        <!-- Cover square on top (same size as standalone cover) -->
+        <rect x="8" y="10" width="12" height="10" fill="#222" opacity="0.7" transform="rotate(15 14 15)"/>
+        <rect x="30" y="28" width="10" height="8" fill="#222" opacity="0.65" transform="rotate(-10 35 32)"/>
+      </pattern>
+    </defs>
+  </svg>
+
+</body>
+</html>

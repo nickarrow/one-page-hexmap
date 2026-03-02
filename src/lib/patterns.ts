@@ -1,175 +1,323 @@
 /**
- * SVG pattern definitions for terrain types
+ * SVG Pattern definitions for terrain types.
  *
- * DESIGN PRINCIPLES:
- * 1. Each pattern must be visually distinct at 7.5mm hex size
- * 2. Patterns should be thematically appropriate
- * 3. Simple shapes for clean printing
- * 4. Grayscale only for printer compatibility
+ * Design Philosophy:
+ * - Cover = solid rotated rectangles (debris providing cover)
+ * - Difficult = diagonal lines (movement hindrance)
+ * - Dangerous = X marks (hazard warning)
+ * - Combinations layer these elements additively
  *
- * VISUAL LANGUAGE:
- * - Circles = organic/natural (forest)
- * - Squares/rectangles = man-made debris (rubble)
- * - Solid fills = impassable (building, mountain)
- * - Curved arcs = elevation (hill, steep hill)
- * - Wavy lines = water
- * - Straight lines = crops/barriers
- * - X marks = hazard/danger
- * - Crosshatch = ruins/broken
- * - Dashed circles = depression (crater)
+ * All patterns use a consistent color scheme:
+ * - Background: white (#fff)
+ * - Foreground: dark gray (#222) for print-friendliness
  */
 
-const BASE_COLOR = '#ffffff';
-const STROKE_COLOR = '#222222';
+import type { TerrainType } from './types';
+
+// =============================================================================
+// PATTERN CONFIGURATION
+// =============================================================================
+
+/** Base pattern tile size */
+const TILE_SIZE = 50;
+
+/** Stroke color for all patterns */
+const STROKE_COLOR = '#222';
+
+/** Background color */
+const BG_COLOR = '#fff';
+
+/** Opacity for layered elements */
+const LAYER_OPACITY = 0.5;
+
+// =============================================================================
+// PATTERN BUILDING BLOCKS
+// =============================================================================
 
 /**
- * Note: Some patterns intentionally use colors outside BASE_COLOR/STROKE_COLOR:
- * - Building (#1a1a1a): Darkest solid to indicate impassable
- * - Mountain (#2d2d2d): Slightly lighter solid with texture
- * - Tower (#e0e0e0 bg): Light background to indicate climbable (vs solid building)
- * - Deep Water (#d0d0d0 bg): Gray background to distinguish from shallow
- * These variations are deliberate for visual distinction at small hex sizes.
+ * Cover pattern element: solid rotated rectangles.
+ * Represents debris, rubble, or structures providing cover.
+ * Rectangles are fully opaque to cover underlying patterns.
+ * Using gray tones to give visual depth while staying opaque.
  */
+const COVER_RECTANGLES = `
+  <rect x="8" y="10" width="14" height="11" fill="#444" transform="rotate(15 15 15.5)"/>
+  <rect x="30" y="28" width="11" height="9" fill="#555" transform="rotate(-12 35.5 32.5)"/>
+  <rect x="18" y="38" width="9" height="7" fill="#666" transform="rotate(25 22.5 41.5)"/>
+  <rect x="38" y="6" width="8" height="10" fill="#666" transform="rotate(-20 42 11)"/>
+`;
 
-export const TERRAIN_PATTERNS: Record<string, string> = {
-  // FOREST: Circles representing tree canopy from above
-  // Distinct: Only terrain using large filled circles
-  forest: `<pattern id="pattern-forest" patternUnits="userSpaceOnUse" width="56" height="56">
-    <rect width="56" height="56" fill="${BASE_COLOR}"/>
-    <circle cx="28" cy="28" r="16" fill="${STROKE_COLOR}" opacity="0.55"/>
-    <circle cx="0" cy="0" r="10" fill="${STROKE_COLOR}" opacity="0.45"/>
-    <circle cx="56" cy="0" r="10" fill="${STROKE_COLOR}" opacity="0.45"/>
-    <circle cx="0" cy="56" r="10" fill="${STROKE_COLOR}" opacity="0.45"/>
-    <circle cx="56" cy="56" r="10" fill="${STROKE_COLOR}" opacity="0.45"/>
-  </pattern>`,
+/**
+ * Difficult pattern element: diagonal lines.
+ * Represents terrain that slows movement.
+ * Uses a smaller tile for denser lines.
+ */
+const DIFFICULT_TILE = 12;
+const DIFFICULT_DIAGONALS = `
+  <line x1="0" y1="${DIFFICULT_TILE}" x2="${DIFFICULT_TILE}" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+`;
 
-  // RUBBLE: Scattered squares/rectangles (angular debris)
-  // Distinct: Only terrain using squares - contrasts with forest circles
-  rubble: `<pattern id="pattern-rubble" patternUnits="userSpaceOnUse" width="50" height="50">
-    <rect width="50" height="50" fill="${BASE_COLOR}"/>
-    <rect x="8" y="10" width="12" height="10" fill="${STROKE_COLOR}" opacity="0.5" transform="rotate(15 14 15)"/>
-    <rect x="30" y="28" width="10" height="8" fill="${STROKE_COLOR}" opacity="0.45" transform="rotate(-10 35 32)"/>
-    <rect x="18" y="38" width="8" height="6" fill="${STROKE_COLOR}" opacity="0.4" transform="rotate(25 22 41)"/>
-    <rect x="38" y="8" width="7" height="9" fill="${STROKE_COLOR}" opacity="0.4" transform="rotate(-20 41 12)"/>
-  </pattern>`,
+/**
+ * Dangerous pattern element: X marks.
+ * Smaller X marks, densely packed to ensure visibility in every hex.
+ */
+const DANGEROUS_TILE = 16;
+const DANGEROUS_X_MARKS = `
+  <line x1="4" y1="4" x2="12" y2="12" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+  <line x1="12" y1="4" x2="4" y2="12" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+`;
 
-  // RUINS: Broken crosshatch (crumbling walls)
-  // Distinct: Only terrain with X pattern / crosshatch
-  ruins: `<pattern id="pattern-ruins" patternUnits="userSpaceOnUse" width="44" height="44">
-    <rect width="44" height="44" fill="${BASE_COLOR}"/>
-    <line x1="0" y1="0" x2="44" y2="44" stroke="${STROKE_COLOR}" stroke-width="5" opacity="0.5"/>
-    <line x1="44" y1="0" x2="0" y2="44" stroke="${STROKE_COLOR}" stroke-width="5" opacity="0.5"/>
-  </pattern>`,
+/**
+ * Muted diagonal lines for combo patterns (denser).
+ */
+const MUTED_DIAGONALS = `
+  <line x1="0" y1="12" x2="12" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+  <line x1="0" y1="24" x2="24" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+  <line x1="0" y1="36" x2="36" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+  <line x1="0" y1="48" x2="48" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+  <line x1="12" y1="50" x2="50" y2="12" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+  <line x1="24" y1="50" x2="50" y2="24" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+  <line x1="36" y1="50" x2="50" y2="36" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+`;
 
-  // BUILDING: Solid dark fill (impassable structure)
-  // Distinct: Solid fill, darkest shade
-  building: `<pattern id="pattern-building" patternUnits="userSpaceOnUse" width="10" height="10">
-    <rect width="10" height="10" fill="#1a1a1a"/>
-  </pattern>`,
+/**
+ * Dense crosshatch for cover+difficult+dangerous.
+ */
+const DENSE_CROSSHATCH = `
+  <g stroke="${STROKE_COLOR}" stroke-width="2" opacity="${LAYER_OPACITY}">
+    <line x1="0" y1="0" x2="12" y2="12"/>
+    <line x1="12" y1="0" x2="0" y2="12"/>
+    <line x1="12" y1="0" x2="24" y2="12"/>
+    <line x1="24" y1="0" x2="12" y2="12"/>
+    <line x1="24" y1="0" x2="36" y2="12"/>
+    <line x1="36" y1="0" x2="24" y2="12"/>
+    <line x1="36" y1="0" x2="48" y2="12"/>
+    <line x1="48" y1="0" x2="36" y2="12"/>
+    <line x1="0" y1="12" x2="12" y2="24"/>
+    <line x1="12" y1="12" x2="0" y2="24"/>
+    <line x1="12" y1="12" x2="24" y2="24"/>
+    <line x1="24" y1="12" x2="12" y2="24"/>
+    <line x1="24" y1="12" x2="36" y2="24"/>
+    <line x1="36" y1="12" x2="24" y2="24"/>
+    <line x1="36" y1="12" x2="48" y2="24"/>
+    <line x1="48" y1="12" x2="36" y2="24"/>
+    <line x1="0" y1="24" x2="12" y2="36"/>
+    <line x1="12" y1="24" x2="0" y2="36"/>
+    <line x1="12" y1="24" x2="24" y2="36"/>
+    <line x1="24" y1="24" x2="12" y2="36"/>
+    <line x1="24" y1="24" x2="36" y2="36"/>
+    <line x1="36" y1="24" x2="24" y2="36"/>
+    <line x1="36" y1="24" x2="48" y2="36"/>
+    <line x1="48" y1="24" x2="36" y2="36"/>
+    <line x1="0" y1="36" x2="12" y2="48"/>
+    <line x1="12" y1="36" x2="0" y2="48"/>
+    <line x1="12" y1="36" x2="24" y2="48"/>
+    <line x1="24" y1="36" x2="12" y2="48"/>
+    <line x1="24" y1="36" x2="36" y2="48"/>
+    <line x1="36" y1="36" x2="24" y2="48"/>
+    <line x1="36" y1="36" x2="48" y2="48"/>
+    <line x1="48" y1="36" x2="36" y2="48"/>
+  </g>
+`;
 
-  // TOWER: Grid/brick pattern (climbable elevated structure)
-  // Distinct: Grid lines on lighter background - accessible unlike solid building
-  tower: `<pattern id="pattern-tower" patternUnits="userSpaceOnUse" width="40" height="40">
-    <rect width="40" height="40" fill="#e0e0e0"/>
-    <line x1="0" y1="20" x2="40" y2="20" stroke="${STROKE_COLOR}" stroke-width="2" opacity="0.5"/>
-    <line x1="20" y1="0" x2="20" y2="20" stroke="${STROKE_COLOR}" stroke-width="2" opacity="0.5"/>
-    <line x1="0" y1="20" x2="0" y2="40" stroke="${STROKE_COLOR}" stroke-width="2" opacity="0.5"/>
-    <line x1="40" y1="20" x2="40" y2="40" stroke="${STROKE_COLOR}" stroke-width="2" opacity="0.5"/>
-  </pattern>`,
+// =============================================================================
+// PATTERN DEFINITIONS
+// =============================================================================
 
-  // MOUNTAIN: Solid dark fill (impassable, slightly lighter than building)
-  // Distinct: Solid fill with subtle texture
-  rocks: `<pattern id="pattern-rocks" patternUnits="userSpaceOnUse" width="20" height="20">
-    <rect width="20" height="20" fill="#2d2d2d"/>
-    <polygon points="10,2 18,18 2,18" fill="#222" opacity="0.3"/>
-  </pattern>`,
+interface PatternDef {
+  id: string;
+  width: number;
+  height: number;
+  content: string;
+}
 
-  // HILL: Curved contour arcs (elevation lines)
-  // Distinct: Single curved arc, open at bottom
-  hill: `<pattern id="pattern-hill" patternUnits="userSpaceOnUse" width="70" height="50">
-    <rect width="70" height="50" fill="${BASE_COLOR}"/>
-    <path d="M5,42 Q35,8 65,42" stroke="${STROKE_COLOR}" stroke-width="5" fill="none" opacity="0.5"/>
-  </pattern>`,
+const PATTERN_DEFS: Record<TerrainType, PatternDef | null> = {
+  // Open terrain has no pattern (white fill)
+  open: null,
 
-  // STEEP HILL: Multiple contour arcs (higher elevation)
-  // Distinct: Multiple nested arcs vs single arc for regular hill
-  steepHill: `<pattern id="pattern-steep-hill" patternUnits="userSpaceOnUse" width="70" height="55">
-    <rect width="70" height="55" fill="${BASE_COLOR}"/>
-    <path d="M5,48 Q35,15 65,48" stroke="${STROKE_COLOR}" stroke-width="5" fill="none" opacity="0.5"/>
-    <path d="M12,32 Q35,8 58,32" stroke="${STROKE_COLOR}" stroke-width="4" fill="none" opacity="0.4"/>
-  </pattern>`,
+  // Blocking: solid dark fill (handled separately, not a pattern)
+  blocking: null,
 
-  // FIELD: Diagonal lines (crop rows at angle)
-  // Distinct: Diagonal vs vertical/horizontal lines
-  field: `<pattern id="pattern-field" patternUnits="userSpaceOnUse" width="28" height="28">
-    <rect width="28" height="28" fill="${BASE_COLOR}"/>
-    <line x1="0" y1="28" x2="28" y2="0" stroke="${STROKE_COLOR}" stroke-width="4" opacity="0.4"/>
-  </pattern>`,
+  // Impassable: wavy lines on gray background (can see through, can't enter)
+  impassable: {
+    id: 'pattern-impassable',
+    width: 20,
+    height: 12,
+    content: `
+      <rect width="20" height="12" fill="#e0e0e0"/>
+      <path d="M0,6 Q5,2 10,6 T20,6" stroke="${STROKE_COLOR}" stroke-width="2.5" fill="none" opacity="0.6"/>
+    `,
+  },
 
-  // BARRICADE: Short horizontal dashes (barrier segments)
-  // Distinct: Horizontal dashes vs diagonal field lines
-  barricade: `<pattern id="pattern-barricade" patternUnits="userSpaceOnUse" width="40" height="30">
-    <rect width="40" height="30" fill="${BASE_COLOR}"/>
-    <line x1="5" y1="15" x2="35" y2="15" stroke="${STROKE_COLOR}" stroke-width="8" opacity="0.5" stroke-linecap="round"/>
-  </pattern>`,
+  // Cover: solid rotated rectangles
+  cover: {
+    id: 'pattern-cover',
+    width: TILE_SIZE,
+    height: TILE_SIZE,
+    content: `
+      <rect width="${TILE_SIZE}" height="${TILE_SIZE}" fill="${BG_COLOR}"/>
+      ${COVER_RECTANGLES}
+    `,
+  },
 
-  // SHALLOW WATER: Horizontal wavy lines
-  // Distinct: Wavy horizontal lines (water movement)
-  waterShallow: `<pattern id="pattern-water-shallow" patternUnits="userSpaceOnUse" width="60" height="35">
-    <rect width="60" height="35" fill="${BASE_COLOR}"/>
-    <path d="M0,17 Q15,7 30,17 T60,17" stroke="${STROKE_COLOR}" stroke-width="4" fill="none" opacity="0.45"/>
-  </pattern>`,
+  // Difficult: diagonal lines (smaller tile for denser pattern)
+  difficult: {
+    id: 'pattern-difficult',
+    width: DIFFICULT_TILE,
+    height: DIFFICULT_TILE,
+    content: `
+      <rect width="${DIFFICULT_TILE}" height="${DIFFICULT_TILE}" fill="${BG_COLOR}"/>
+      ${DIFFICULT_DIAGONALS}
+    `,
+  },
 
-  // DEEP WATER: Dense wavy lines with gray background
-  // Distinct: Gray background + wavy lines (deeper = darker)
-  waterDeep: `<pattern id="pattern-water-deep" patternUnits="userSpaceOnUse" width="50" height="26">
-    <rect width="50" height="26" fill="#d0d0d0"/>
-    <path d="M0,13 Q12,4 25,13 T50,13" stroke="${STROKE_COLOR}" stroke-width="4" fill="none" opacity="0.55"/>
-  </pattern>`,
+  // Dangerous: X marks (smaller tile ensures X in every hex)
+  dangerous: {
+    id: 'pattern-dangerous',
+    width: DANGEROUS_TILE,
+    height: DANGEROUS_TILE,
+    content: `
+      <rect width="${DANGEROUS_TILE}" height="${DANGEROUS_TILE}" fill="${BG_COLOR}"/>
+      ${DANGEROUS_X_MARKS}
+    `,
+  },
 
-  // SWAMP: Horizontal straight lines with dots (murky water + vegetation)
-  // Distinct: Straight lines (not wavy) + dots - different from water
-  swamp: `<pattern id="pattern-swamp" patternUnits="userSpaceOnUse" width="55" height="40">
-    <rect width="55" height="40" fill="${BASE_COLOR}"/>
-    <line x1="0" y1="28" x2="55" y2="28" stroke="${STROKE_COLOR}" stroke-width="3" opacity="0.35"/>
-    <circle cx="15" cy="12" r="5" fill="${STROKE_COLOR}" opacity="0.4"/>
-    <circle cx="42" cy="18" r="4" fill="${STROKE_COLOR}" opacity="0.35"/>
-    <circle cx="30" cy="8" r="3" fill="${STROKE_COLOR}" opacity="0.3"/>
-  </pattern>`,
+  // Cover + Difficult: rectangles with muted diagonals
+  'cover-difficult': {
+    id: 'pattern-cover-difficult',
+    width: TILE_SIZE,
+    height: TILE_SIZE,
+    content: `
+      <rect width="${TILE_SIZE}" height="${TILE_SIZE}" fill="${BG_COLOR}"/>
+      ${MUTED_DIAGONALS}
+      ${COVER_RECTANGLES}
+    `,
+  },
 
-  // CRATER: Concentric dashed circles (impact depression)
-  // Distinct: Only terrain with circular dashed lines
-  crater: `<pattern id="pattern-crater" patternUnits="userSpaceOnUse" width="70" height="70">
-    <rect width="70" height="70" fill="${BASE_COLOR}"/>
-    <circle cx="35" cy="35" r="26" stroke="${STROKE_COLOR}" stroke-width="4" fill="none" opacity="0.45" stroke-dasharray="8 5"/>
-    <circle cx="35" cy="35" r="12" stroke="${STROKE_COLOR}" stroke-width="3" fill="none" opacity="0.35"/>
-  </pattern>`,
+  // Cover + Dangerous: rectangles with small X marks overlay
+  'cover-dangerous': {
+    id: 'pattern-cover-dangerous',
+    width: TILE_SIZE,
+    height: TILE_SIZE,
+    content: `
+      <rect width="${TILE_SIZE}" height="${TILE_SIZE}" fill="${BG_COLOR}"/>
+      ${COVER_RECTANGLES}
+      <g>
+        <line x1="2" y1="2" x2="10" y2="10" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="10" y1="2" x2="2" y2="10" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="22" y1="18" x2="30" y2="26" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="30" y1="18" x2="22" y2="26" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="40" y1="40" x2="48" y2="48" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="48" y1="40" x2="40" y2="48" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="6" y1="32" x2="14" y2="40" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="14" y1="32" x2="6" y2="40" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+      </g>
+    `,
+  },
 
-  // LAVA/DANGEROUS: X marks (universal hazard symbol)
-  // Distinct: Bold X pattern - clear danger indication
-  dangerous: `<pattern id="pattern-dangerous" patternUnits="userSpaceOnUse" width="45" height="45">
-    <rect width="45" height="45" fill="${BASE_COLOR}"/>
-    <line x1="8" y1="8" x2="37" y2="37" stroke="${STROKE_COLOR}" stroke-width="6" opacity="0.6"/>
-    <line x1="37" y1="8" x2="8" y2="37" stroke="${STROKE_COLOR}" stroke-width="6" opacity="0.6"/>
-  </pattern>`,
+  // Difficult + Dangerous: dense diagonals with small X marks
+  'difficult-dangerous': {
+    id: 'pattern-difficult-dangerous',
+    width: TILE_SIZE,
+    height: TILE_SIZE,
+    content: `
+      <rect width="${TILE_SIZE}" height="${TILE_SIZE}" fill="${BG_COLOR}"/>
+      <g>
+        <line x1="0" y1="12" x2="12" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="0" y1="24" x2="24" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="0" y1="36" x2="36" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="0" y1="48" x2="48" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="12" y1="50" x2="50" y2="12" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="24" y1="50" x2="50" y2="24" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="36" y1="50" x2="50" y2="36" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+      </g>
+      <g>
+        <line x1="2" y1="2" x2="10" y2="10" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="10" y1="2" x2="2" y2="10" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="22" y1="18" x2="30" y2="26" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="30" y1="18" x2="22" y2="26" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="40" y1="40" x2="48" y2="48" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="48" y1="40" x2="40" y2="48" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="6" y1="32" x2="14" y2="40" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="14" y1="32" x2="6" y2="40" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+      </g>
+    `,
+  },
+
+  // Cover + Difficult + Dangerous: dense crosshatch with rectangles
+  'cover-difficult-dangerous': {
+    id: 'pattern-cover-difficult-dangerous',
+    width: TILE_SIZE,
+    height: TILE_SIZE,
+    content: `
+      <rect width="${TILE_SIZE}" height="${TILE_SIZE}" fill="${BG_COLOR}"/>
+      ${DENSE_CROSSHATCH}
+      <rect x="8" y="10" width="14" height="11" fill="#444" transform="rotate(15 15 15.5)"/>
+      <rect x="30" y="28" width="11" height="9" fill="#555" transform="rotate(-12 35.5 32.5)"/>
+    `,
+  },
 };
 
+// =============================================================================
+// EXPORTS
+// =============================================================================
+
 /**
- * Get all pattern definitions as an array for oi.hexmap.js
+ * Get the pattern ID for a terrain type.
+ * Returns null for open (white) and blocking (solid dark).
  */
-export function getAllPatterns(): string[] {
-  return Object.values(TERRAIN_PATTERNS);
+export function getPatternId(terrain: TerrainType): string | null {
+  const def = PATTERN_DEFS[terrain];
+  return def ? def.id : null;
 }
 
 /**
- * Get the fill value for a terrain type
+ * Get the fill value for a terrain type.
+ * This is what goes in the SVG fill attribute.
  */
-export function getTerrainFill(terrainId: string): string {
-  if (terrainId === 'open') {
-    return BASE_COLOR;
+export function getTerrainFill(terrain: TerrainType): string {
+  if (terrain === 'open') return '#ffffff';
+  if (terrain === 'blocking') return '#1a1a1a';
+
+  const patternId = getPatternId(terrain);
+  return patternId ? `url(#${patternId})` : '#ffffff';
+}
+
+/**
+ * Generate all SVG pattern definitions as a string.
+ * This should be included in the SVG's <defs> section.
+ */
+export function generatePatternDefs(): string {
+  const patterns: string[] = [];
+
+  for (const [, def] of Object.entries(PATTERN_DEFS)) {
+    if (def) {
+      patterns.push(`
+        <pattern id="${def.id}" patternUnits="userSpaceOnUse" width="${def.width}" height="${def.height}">
+          ${def.content}
+        </pattern>
+      `);
+    }
   }
-  if (TERRAIN_PATTERNS[terrainId]) {
-    return `url(#pattern-${terrainId})`;
-  }
-  return BASE_COLOR;
+
+  return patterns.join('\n');
+}
+
+/**
+ * Get display name for a terrain type.
+ */
+export function getTerrainDisplayName(terrain: TerrainType): string {
+  const names: Record<TerrainType, string> = {
+    open: 'Open',
+    blocking: 'Blocking',
+    impassable: 'Impassable',
+    cover: 'Cover',
+    difficult: 'Difficult',
+    dangerous: 'Dangerous',
+    'cover-difficult': 'Cover + Difficult',
+    'cover-dangerous': 'Cover + Dangerous',
+    'difficult-dangerous': 'Difficult + Dangerous',
+    'cover-difficult-dangerous': 'Cover + Difficult + Dangerous',
+  };
+  return names[terrain];
 }

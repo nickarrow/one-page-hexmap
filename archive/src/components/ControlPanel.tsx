@@ -1,5 +1,5 @@
-import type { GeneratorConfig, DisplayConfig, GenerationPreset, TerrainTheme } from '../types';
-import { PRESET_LABELS, THEME_LABELS, THEME_DESCRIPTIONS } from '../lib/presets';
+import type { GeneratorConfig, DisplayConfig, GenerationPreset } from '../types';
+import { PRESET_LABELS } from '../lib/presets';
 
 interface Props {
   generatorConfig: GeneratorConfig;
@@ -20,7 +20,6 @@ export function ControlPanel({
   onSeedChange,
   onRegenerate,
 }: Props) {
-  const themes: TerrainTheme[] = ['balanced', 'urban', 'wilderness', 'wasteland', 'deathWorld'];
   const presets: GenerationPreset[] = ['balanced', 'open', 'dense', 'hazardous', 'custom'];
 
   return (
@@ -46,25 +45,8 @@ export function ControlPanel({
         </div>
       </Section>
 
-      {/* Theme */}
-      <Section title="Theme" subtitle="What terrain types appear">
-        <select
-          value={generatorConfig.theme}
-          onChange={(e) =>
-            onGeneratorChange({ theme: (e.target as HTMLSelectElement).value as TerrainTheme })
-          }
-          class="w-full px-2 py-1.5 text-sm border rounded"
-        >
-          {themes.map((theme) => (
-            <option key={theme} value={theme}>
-              {THEME_LABELS[theme]} — {THEME_DESCRIPTIONS[theme]}
-            </option>
-          ))}
-        </select>
-      </Section>
-
       {/* Preset */}
-      <Section title="Preset" subtitle="How much terrain">
+      <Section title="Map Style" subtitle="Terrain density and mix">
         <select
           value={generatorConfig.preset}
           onChange={(e) =>

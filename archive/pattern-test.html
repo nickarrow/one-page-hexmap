@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPR Terrain Pattern Test</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 2rem;
+      margin: 0;
+    }
+    h1 { margin-bottom: 0.5rem; }
+    .subtitle { color: #666; margin-bottom: 2rem; }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      max-width: 1400px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .card h3 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1rem;
+    }
+    
+    .card .props {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 0.75rem;
+    }
+    
+    .hex-row {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+    
+    .hex-cluster {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem;
+      background: #fafafa;
+      border-radius: 4px;
+    }
+    
+    /* Hex shape using clip-path */
+    .hex {
+      width: 50px;
+      height: 57px;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      border: none;
+    }
+    
+    .examples {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 0.5rem;
+      text-align: center;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <h1>OPR Terrain Patterns — Property-Based System</h1>
+  <p class="subtitle">9 distinct patterns based on terrain property combinations. Visual language: Dots = Cover, Lines = Difficult, X = Dangerous</p>
+  
+  <div class="grid">
+    <!-- 1. Open -->
+    <div class="card">
+      <h3>1. Open</h3>
+      <div class="props">No properties</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <defs>
+            <pattern id="pattern-open" patternUnits="userSpaceOnUse" width="20" height="20">
+              <rect width="20" height="20" fill="#ffffff"/>
+            </pattern>
+          </defs>
+          <!-- Hex cluster -->
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#pattern-open)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#pattern-open)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#pattern-open)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Roads, clearings, open ground</div>
+    </div>
+
+    <!-- 2. Impassable/Blocking -->
+    <div class="card">
+      <h3>2. Impassable + Blocking</h3>
+      <div class="props">Cannot enter, blocks LOS</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <defs>
+            <pattern id="pattern-blocking" patternUnits="userSpaceOnUse" width="20" height="20">
+              <rect width="20" height="20" fill="#1a1a1a"/>
+            </pattern>
+          </defs>
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#pattern-blocking)" stroke="#000" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#pattern-blocking)" stroke="#000" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#pattern-blocking)" stroke="#000" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Buildings, mountains, deep water</div>
+    </div>
+
+    <!-- 3. Cover only -->
+    <div class="card">
+      <h3>3. Cover</h3>
+      <div class="props">+1 Defense when in/behind</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <defs>
+            <pattern id="pattern-cover" patternUnits="userSpaceOnUse" width="16" height="16">
+              <rect width="16" height="16" fill="#ffffff"/>
+              <circle cx="4" cy="4" r="2.5" fill="#333" opacity="0.5"/>
+              <circle cx="12" cy="12" r="2.5" fill="#333" opacity="0.5"/>
+            </pattern>
+          </defs>
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#pattern-cover)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#pattern-cover)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#pattern-cover)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Barricades, craters, low walls</div>
+    </div>
+
+    <!-- 4. Difficult only -->
+    <div class="card">
+      <h3>4. Difficult</h3>
+      <div class="props">Max 6" movement</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <defs>
+            <pattern id="pattern-difficult" patternUnits="userSpaceOnUse" width="12" height="12">
+              <rect width="12" height="12" fill="#ffffff"/>
+              <line x1="0" y1="12" x2="12" y2="0" stroke="#333" stroke-width="2" opacity="0.4"/>
+            </pattern>
+          </defs>
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#pattern-difficult)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#pattern-difficult)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#pattern-difficult)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Rubble, swamps, shallow water</div>
+    </div>
+
+    <!-- 5. Dangerous only -->
+    <div class="card">
+      <h3>5. Dangerous</h3>
+      <div class="props">Roll Tough, 1 = wound</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <defs>
+            <pattern id="pattern-dangerous" patternUnits="userSpaceOnUse" width="24" height="24">
+              <rect width="24" height="24" fill="#ffffff"/>
+              <line x1="6" y1="6" x2="18" y2="18" stroke="#333" stroke-width="3" opacity="0.6"/>
+              <line x1="18" y1="6" x2="6" y2="18" stroke="#333" stroke-width="3" opacity="0.6"/>
+            </pattern>
+          </defs>
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#pattern-dangerous)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#pattern-dangerous)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#pattern-dangerous)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Lava, minefields, razor wire</div>
+    </div>
+
+    <!-- 6. Cover + Difficult -->
+    <div class="card">
+      <h3>6. Cover + Difficult</h3>
+      <div class="props">+1 Defense, max 6" move</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <defs>
+            <pattern id="pattern-cover-difficult" patternUnits="userSpaceOnUse" width="20" height="20">
+              <rect width="20" height="20" fill="#ffffff"/>
+              <!-- Diagonal lines for difficult -->
+              <line x1="0" y1="20" x2="20" y2="0" stroke="#333" stroke-width="2" opacity="0.35"/>
+              <!-- Dots for cover -->
+              <circle cx="5" cy="5" r="3" fill="#333" opacity="0.5"/>
+              <circle cx="15" cy="15" r="3" fill="#333" opacity="0.5"/>
+            </pattern>
+          </defs>
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#pattern-cover-difficult)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#pattern-cover-difficult)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#pattern-cover-difficult)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Forests, fields, hills</div>
+    </div>
+
+    <!-- 7. Cover + Dangerous -->
+    <div class="card">
+      <h3>7. Cover + Dangerous</h3>
+      <div class="props">+1 Defense, wound on 1</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <defs>
+            <pattern id="pattern-cover-dangerous" patternUnits="userSpaceOnUse" width="24" height="24">
+              <rect width="24" height="24" fill="#ffffff"/>
+              <!-- Dots for cover -->
+              <circle cx="6" cy="6" r="3" fill="#333" opacity="0.45"/>
+              <circle cx="18" cy="18" r="3" fill="#333" opacity="0.45"/>
+              <!-- X for dangerous -->
+              <line x1="8" y1="8" x2="16" y2="16" stroke="#333" stroke-width="2.5" opacity="0.55"/>
+              <line x1="16" y1="8" x2="8" y2="16" stroke="#333" stroke-width="2.5" opacity="0.55"/>
+            </pattern>
+          </defs>
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#pattern-cover-dangerous)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#pattern-cover-dangerous)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#pattern-cover-dangerous)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Toxic smog, unstable ruins</div>
+    </div>
+
+    <!-- 8. Difficult + Dangerous -->
+    <div class="card">
+      <h3>8. Difficult + Dangerous</h3>
+      <div class="props">Max 6" move, wound on 1</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <defs>
+            <pattern id="pattern-difficult-dangerous" patternUnits="userSpaceOnUse" width="24" height="24">
+              <rect width="24" height="24" fill="#ffffff"/>
+              <!-- Diagonal lines for difficult -->
+              <line x1="0" y1="24" x2="24" y2="0" stroke="#333" stroke-width="2" opacity="0.35"/>
+              <!-- X for dangerous -->
+              <line x1="6" y1="6" x2="18" y2="18" stroke="#333" stroke-width="3" opacity="0.55"/>
+              <line x1="18" y1="6" x2="6" y2="18" stroke="#333" stroke-width="3" opacity="0.55"/>
+            </pattern>
+          </defs>
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#pattern-difficult-dangerous)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#pattern-difficult-dangerous)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#pattern-difficult-dangerous)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Death marsh, toxic rivers</div>
+    </div>
+
+    <!-- 9. Cover + Difficult + Dangerous -->
+    <div class="card">
+      <h3>9. Cover + Difficult + Dangerous</h3>
+      <div class="props">All three properties</div>
+      <div class="hex-cluster">
+        <svg width="180" height="120" viewBox="0 0 180 120">
+          <defs>
+            <pattern id="pattern-all-three" patternUnits="userSpaceOnUse" width="28" height="28">
+              <rect width="28" height="28" fill="#ffffff"/>
+              <!-- Diagonal lines for difficult -->
+              <line x1="0" y1="28" x2="28" y2="0" stroke="#333" stroke-width="2" opacity="0.3"/>
+              <!-- Dots for cover -->
+              <circle cx="7" cy="7" r="3.5" fill="#333" opacity="0.45"/>
+              <circle cx="21" cy="21" r="3.5" fill="#333" opacity="0.45"/>
+              <!-- X for dangerous -->
+              <line x1="9" y1="9" x2="19" y2="19" stroke="#333" stroke-width="2.5" opacity="0.5"/>
+              <line x1="19" y1="9" x2="9" y2="19" stroke="#333" stroke-width="2.5" opacity="0.5"/>
+            </pattern>
+          </defs>
+          <polygon points="60,10 90,27 90,63 60,80 30,63 30,27" fill="url(#pattern-all-three)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="120,10 150,27 150,63 120,80 90,63 90,27" fill="url(#pattern-all-three)" stroke="#999" stroke-width="1.5"/>
+          <polygon points="90,50 120,67 120,103 90,120 60,103 60,67" fill="url(#pattern-all-three)" stroke="#999" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="examples">Deadly vegetation, carnivorous jungle</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 3rem; padding: 1.5rem; background: white; border-radius: 8px; max-width: 800px;">
+    <h2 style="margin-top: 0;">Visual Language Summary</h2>
+    <table style="width: 100%; border-collapse: collapse;">
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.5rem;"><strong>Dots / Stipple</strong></td>
+        <td style="padding: 0.5rem;">= Cover (+1 Defense)</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.5rem;"><strong>Diagonal Lines</strong></td>
+        <td style="padding: 0.5rem;">= Difficult (max 6" move)</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.5rem;"><strong>X Marks</strong></td>
+        <td style="padding: 0.5rem;">= Dangerous (wound on 1)</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.5rem;"><strong>Solid Dark</strong></td>
+        <td style="padding: 0.5rem;">= Impassable + Blocking (can't enter, blocks LOS)</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.5rem;"><strong>Empty White</strong></td>
+        <td style="padding: 0.5rem;">= Open (no special rules)</td>
+      </tr>
+    </table>
+    <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+      Elevation is shown separately via contour lines and numeric labels (already implemented).
+    </p>
+  </div>
+</body>
+</html>

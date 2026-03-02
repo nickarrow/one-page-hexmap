@@ -1,164 +1,186 @@
 /**
- * Game and generation constants derived from OPR rulebook and PROJECT_FOUNDATION.md
- *
- * These values are based on:
- * - OPR half-scale rules (1 hex = 1 inch on a 36"×24" table)
- * - OPR terrain placement guidelines (rulebook lines 221-258)
- * - Physical constraints (7mm tokens, US Letter/A4 paper)
+ * Constants for OPR Hex Battle Map Generator
+ * All magic numbers live here with descriptive names.
  */
 
 // =============================================================================
 // GRID DIMENSIONS
 // =============================================================================
 
-/** Standard grid width in hexes (36" half-scale table width) */
+/** Number of hex columns (horizontal) */
 export const GRID_COLUMNS = 36;
 
-/** Standard grid height in hexes (24" half-scale table height) */
+/** Number of hex rows (vertical) */
 export const GRID_ROWS = 24;
 
+/** Total hexes in the grid */
+export const TOTAL_HEXES = GRID_COLUMNS * GRID_ROWS;
+
 // =============================================================================
-// OPR TERRAIN PLACEMENT RULES (rulebook lines 221-258)
+// PRINT DIMENSIONS (US Letter Landscape)
+// =============================================================================
+
+/** Page width in inches */
+export const PAGE_WIDTH_INCHES = 11;
+
+/** Page height in inches */
+export const PAGE_HEIGHT_INCHES = 8.5;
+
+/** Print margin in inches */
+export const PRINT_MARGIN_INCHES = 0.2;
+
+/** Printable area width in inches */
+export const PRINTABLE_WIDTH_INCHES = PAGE_WIDTH_INCHES - 2 * PRINT_MARGIN_INCHES;
+
+/** Printable area height in inches */
+export const PRINTABLE_HEIGHT_INCHES = PAGE_HEIGHT_INCHES - 2 * PRINT_MARGIN_INCHES;
+
+/** DPI for SVG calculations */
+export const DPI = 96;
+
+/** Printable width in pixels */
+export const PRINTABLE_WIDTH_PX = PRINTABLE_WIDTH_INCHES * DPI;
+
+/** Printable height in pixels */
+export const PRINTABLE_HEIGHT_PX = PRINTABLE_HEIGHT_INCHES * DPI;
+
+// =============================================================================
+// HEX GEOMETRY (Flat-topped hexes)
 // =============================================================================
 
 /**
- * Terrain coverage targets as fraction of total hexes.
- * OPR recommends ~25% coverage; we allow 20-35% via density slider.
+ * For flat-topped hexes:
+ * - Width (w) = distance between parallel flat edges
+ * - Height (h) = distance between opposite points = w * 2/sqrt(3) = w * 1.1547
+ * - Horizontal spacing = w * 3/4 (hexes interlock)
+ * - Vertical spacing = h
+ * - Odd columns offset down by h/2
  */
-export const TERRAIN_COVERAGE = {
-  /** Minimum coverage at density=0 */
-  MIN: 0.2,
-  /** Additional coverage per density unit (so max = MIN + RANGE = 35%) */
-  RANGE: 0.15,
-} as const;
+
+/** Ratio of hex height to width for flat-topped hexes: sqrt(3)/2 ≈ 0.866 */
+export const HEX_HEIGHT_RATIO = Math.sqrt(3) / 2;
+
+/** Horizontal spacing multiplier (hexes interlock at 3/4 width) */
+export const HEX_HORIZONTAL_SPACING = 0.75;
 
 /**
- * Gap and passage constraints in hexes.
+ * Calculate hex dimensions to fit grid in printable area.
  *
- * IMPORTANT: These values are NOT halved for half-scale play.
- * While distances for movement/range are halved, physical unit bases remain
- * the same size. A gap that fits a 40mm base on a full table still needs to
- * fit that same 40mm base on a half table.
+ * Grid width = hexWidth/2 + (GRID_COLUMNS - 1) * hexWidth * 0.75 + hexWidth/2
+ *            = hexWidth * (1 + (GRID_COLUMNS - 1) * 0.75)
+ *            = hexWidth * (0.25 + GRID_COLUMNS * 0.75)
+ *
+ * Grid height = hexHeight * GRID_ROWS + hexHeight/2 (for odd column offset)
+ *             = hexHeight * (GRID_ROWS + 0.5)
  */
 
-/**
- * Maximum gap between terrain pieces in hexes.
- * OPR: "no gap larger than 12 inches" — keeps terrain distributed across table.
- */
+// Calculate based on width constraint to fill the page horizontally
+const hexWidthFromWidth = PRINTABLE_WIDTH_PX / (0.25 + GRID_COLUMNS * HEX_HORIZONTAL_SPACING);
+
+// Use width-based calculation
+export const HEX_WIDTH_PX = hexWidthFromWidth;
+
+/** Hex height in pixels */
+export const HEX_HEIGHT_PX = HEX_WIDTH_PX * HEX_HEIGHT_RATIO;
+
+/** Calculated grid width in pixels */
+export const GRID_WIDTH_PX = HEX_WIDTH_PX * (0.25 + GRID_COLUMNS * HEX_HORIZONTAL_SPACING);
+
+/** Calculated grid height in pixels */
+export const GRID_HEIGHT_PX = HEX_HEIGHT_PX * (GRID_ROWS + 0.5);
+
+// =============================================================================
+// OPR TERRAIN GUIDELINES (Default targets)
+// =============================================================================
+
+/** Minimum percentage of map that should be covered with terrain */
+export const TARGET_COVERAGE_MIN = 0.25;
+
+/** Minimum percentage of terrain that should block LOS */
+export const TARGET_BLOCKING_MIN = 0.5;
+
+/** Minimum percentage of terrain that should provide cover */
+export const TARGET_COVER_MIN = 0.33;
+
+/** Minimum percentage of terrain that should be difficult */
+export const TARGET_DIFFICULT_MIN = 0.33;
+
+/** Default number of dangerous terrain clusters */
+export const TARGET_DANGEROUS_CLUSTERS = 2;
+
+/** Maximum gap between terrain pieces (in hexes) */
 export const MAX_TERRAIN_GAP_HEXES = 12;
 
-/**
- * Minimum passage width between terrain pieces in hexes.
- * OPR: "gaps of at least 6 inches" — ensures units can move between terrain.
- * Currently validated by design (cluster placement naturally leaves gaps).
- * TODO: Add active enforcement if terrain gets too dense.
- */
-export const MIN_PASSAGE_HEXES = 6;
-
-/**
- * Minimum dangerous terrain pieces per OPR rules.
- * "Each player should pick 1 piece to be dangerous terrain" = 2 total.
- */
-export const MIN_DANGEROUS_TERRAIN_PIECES = 2;
-
-/**
- * Average cluster size used to estimate number of clusters from target hex count.
- * Based on typical terrain piece sizes in TERRAIN_PRESETS (2-8 hex range).
- */
-export const AVERAGE_CLUSTER_SIZE = 5;
-
-/**
- * Margin from map edges for terrain placement (in hexes).
- * Keeps terrain away from deployment zones and map borders.
- */
-export const PLACEMENT_EDGE_MARGIN = 3;
+/** Minimum passage width between terrain (in hexes) */
+export const MIN_PASSAGE_WIDTH_HEXES = 6;
 
 // =============================================================================
-// ELEVATION SYSTEM (per OPR climbing rules)
+// TERRAIN PIECE SIZES (in hexes)
 // =============================================================================
 
-/**
- * OPR climbing rules: ±1 level is climbable, ±2+ is impassable.
- * Each level represents 2" of height.
- */
-export const ELEVATION = {
-  /** Number of ramp hexes to create around +2 elevation terrain */
-  RAMP_HEXES_MIN: 2,
-  RAMP_HEXES_MAX: 4,
+/** Small scatter terrain: 1-3 hexes */
+export const PIECE_SIZE_SMALL = { min: 1, max: 3 };
 
-  /** Number of climbable approach points for steep terrain */
-  APPROACH_POINTS_MIN: 1,
-  APPROACH_POINTS_MAX: 2,
-} as const;
+/** Medium terrain: 4-8 hexes */
+export const PIECE_SIZE_MEDIUM = { min: 4, max: 8 };
+
+/** Large terrain: 8-12 hexes */
+export const PIECE_SIZE_LARGE = { min: 8, max: 12 };
 
 // =============================================================================
-// TERRAIN GENERATION PROBABILITIES
+// ELEVATION
 // =============================================================================
 
-/**
- * Probability settings for terrain feature generation.
- * These control variety without being configurable by users.
- */
-export const GENERATION_CHANCES = {
-  /** Chance for hill center to have +1 elevation peak */
-  HILL_PEAK: 0.6,
+/** Minimum elevation level */
+export const ELEVATION_MIN = -2;
 
-  /** Chance for steep hill center to have +1 elevation peak */
-  STEEP_HILL_PEAK: 0.5,
+/** Maximum elevation level */
+export const ELEVATION_MAX = 4;
 
-  /** Chance for ruins to have +1 elevation (partial walls) */
-  RUINS_ELEVATION: 0.5,
+/** Default maximum elevation when elevation is enabled */
+export const ELEVATION_DEFAULT_MAX = 2;
 
-  /** Chance for any open hex to get scattered elevation */
-  SCATTERED_ELEVATION: 0.05,
-
-  /** Of scattered elevation, chance to be a rise vs depression */
-  SCATTERED_RISE_VS_DEPRESSION: 0.7,
-} as const;
-
-/**
- * Number of small elevated clusters to scatter across open terrain.
- */
-export const SCATTERED_RISE_CLUSTERS = {
-  MIN: 2,
-  MAX: 4,
-  /** Hexes per cluster */
-  SIZE_MIN: 1,
-  SIZE_MAX: 3,
-} as const;
+/** Elevation change that is climbable (±1) */
+export const CLIMBABLE_ELEVATION_DIFF = 1;
 
 // =============================================================================
-// ALGORITHM LIMITS
+// GENERATOR DEFAULTS
 // =============================================================================
 
-/**
- * Safety limits to prevent infinite loops or performance issues.
- */
-export const ALGORITHM_LIMITS = {
-  /** Max BFS iterations when measuring gaps (prevents runaway on large open areas) */
-  GAP_SEARCH_MAX_HEXES: 100,
+/** Default terrain density (0-1 scale) */
+export const DEFAULT_DENSITY = 0.5;
 
-  /** Max attempts when growing a cluster (targetSize * this multiplier) */
-  CLUSTER_GROWTH_MULTIPLIER: 10,
+/** Default terrain mix percentages */
+export const DEFAULT_TERRAIN_MIX = {
+  blocking: TARGET_BLOCKING_MIN,
+  impassable: 0, // Off by default
+  cover: TARGET_COVER_MIN,
+  difficult: TARGET_DIFFICULT_MIN,
+  dangerous: 0.05, // Small amount by default
+};
 
-  /** Max adjacent hexes to add when filling gaps or fixing LOS */
-  FILL_CLUSTER_MAX_ADJACENT: 2,
+/** Default cluster spacing (0=tight, 1=spread) */
+export const DEFAULT_CLUSTER_SPACING = 0.5;
 
-  /** Interval for vertical LOS checks (every N columns) */
-  VERTICAL_LOS_CHECK_INTERVAL: 4,
-} as const;
+/** Default symmetry setting */
+export const DEFAULT_SYMMETRY = false;
+
+/** Default strict LOS setting */
+export const DEFAULT_STRICT_LOS = true;
+
+/** Default elevation settings */
+export const DEFAULT_ELEVATION = {
+  enabled: true,
+  maxLevel: ELEVATION_DEFAULT_MAX,
+  intensity: 0.5,
+};
 
 // =============================================================================
-// GAP FILLING TERRAIN OPTIONS
+// UI
 // =============================================================================
 
-/**
- * Terrain types used when filling large gaps or fixing LOS issues.
- * These provide cover without being impassable.
- */
-export const GAP_FILL_TERRAIN_OPTIONS = ['forest', 'ruins', 'rubble', 'barricade'] as const;
+/** Slider step for percentage controls */
+export const SLIDER_STEP_PERCENT = 0.05;
 
-/**
- * Default terrain for LOS blocking (partial LOS, common, natural-looking).
- */
-export const LOS_BLOCKER_TERRAIN = 'forest';
+/** Slider step for density control */
+export const SLIDER_STEP_DENSITY = 0.1;

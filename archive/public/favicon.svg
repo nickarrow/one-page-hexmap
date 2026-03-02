@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" fill="#fdf4d6" stroke="#656058" stroke-width="4"/>
+  <text x="50" y="60" text-anchor="middle" font-family="serif" font-size="32" font-weight="bold" fill="#656058">H</text>
+</svg>
