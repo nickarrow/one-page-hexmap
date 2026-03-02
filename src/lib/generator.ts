@@ -11,6 +11,18 @@ import {
   PIECE_SIZE_SMALL,
   PIECE_SIZE_MEDIUM,
   PIECE_SIZE_LARGE,
+  STRATEGIC_LOS_ROWS,
+  ELEVATION_CLUSTER_COUNT_BASE,
+  ELEVATION_CLUSTER_COUNT_MULTIPLIER,
+  ELEVATION_CLUSTER_SIZE_BASE,
+  ELEVATION_CLUSTER_SIZE_MULTIPLIER,
+  ELEVATION_PROB_HIGH,
+  ELEVATION_PROB_MID,
+  ELEVATION_PROB_LOW,
+  ELEVATION_SCATTER_BASE,
+  ELEVATION_SCATTER_MULTIPLIER,
+  SPACING_REDUCTION_THRESHOLD_HIGH,
+  SPACING_REDUCTION_THRESHOLD_LOW,
 } from './constants';
 import { createSeededRandom, randomInt, pickRandom, shuffleArray, chance } from './random';
 import { getValidNeighbors, hexDistance, hexKey, isValidCoord } from './hexUtils';
@@ -67,8 +79,8 @@ function getMinSpacing(clusterSpacing: number, pieceCount: number): number {
   // Base spacing from slider: 1 (tight) to 6 (spread out)
   const baseSpacing = Math.round(1 + clusterSpacing * 5);
   // Reduce spacing as we place more pieces to ensure we can fit them
-  if (pieceCount > 15) return Math.max(1, baseSpacing - 2);
-  if (pieceCount > 8) return Math.max(1, baseSpacing - 1);
+  if (pieceCount > SPACING_REDUCTION_THRESHOLD_HIGH) return Math.max(1, baseSpacing - 2);
+  if (pieceCount > SPACING_REDUCTION_THRESHOLD_LOW) return Math.max(1, baseSpacing - 1);
   return baseSpacing;
 }
 
@@ -223,14 +235,12 @@ function ensureLOSBlocking(
   strict: boolean
 ): void {
   // Block LOS from top to bottom (deployment edges)
-  // Strategic rows divide the map into quarters vertically
-  const strategicRows = [6, 12, 18]; // Roughly quarters of the 24-row grid
   const requiredCount = strict ? 3 : 2; // Strict = all 3, Relaxed = any 2
 
   let blockedCount = 0;
   const unblockedRows: number[] = [];
 
-  for (const row of strategicRows) {
+  for (const row of STRATEGIC_LOS_ROWS) {
     let hasBlocker = false;
     for (let col = 0; col < GRID_COLUMNS; col++) {
       if (grid[col][row].terrain === 'blocking') {
@@ -283,7 +293,9 @@ function ensureLOSBlocking(
 function addElevation(grid: HexGrid, config: GeneratorConfig, random: () => number): void {
   if (!config.elevation.enabled) return;
   const { maxLevel, intensity } = config.elevation;
-  const numClusters = Math.floor(3 + intensity * 8);
+  const numClusters = Math.floor(
+    ELEVATION_CLUSTER_COUNT_BASE + intensity * ELEVATION_CLUSTER_COUNT_MULTIPLIER
+  );
 
   // For symmetry, only place on top half then mirror
   const rowMax = config.symmetry ? Math.floor(GRID_ROWS / 2) - 1 : GRID_ROWS - 4;
@@ -297,9 +309,9 @@ function addElevation(grid: HexGrid, config: GeneratorConfig, random: () => numb
 
     let level: number;
     const roll = random();
-    if (roll < 0.1 && maxLevel >= 3) level = randomInt(3, maxLevel, random);
-    else if (roll < 0.3 && maxLevel >= 2) level = 2;
-    else if (roll < 0.7) level = 1;
+    if (roll < ELEVATION_PROB_HIGH && maxLevel >= 3) level = randomInt(3, maxLevel, random);
+    else if (roll < ELEVATION_PROB_MID && maxLevel >= 2) level = 2;
+    else if (roll < ELEVATION_PROB_LOW) level = 1;
     else level = -1;
 
     growElevationCluster(
@@ -307,7 +319,7 @@ function addElevation(grid: HexGrid, config: GeneratorConfig, random: () => numb
       col,
       row,
       level,
-      Math.floor(3 + intensity * 6),
+      Math.floor(ELEVATION_CLUSTER_SIZE_BASE + intensity * ELEVATION_CLUSTER_SIZE_MULTIPLIER),
       random,
       config.symmetry
     );
@@ -330,7 +342,7 @@ function addElevation(grid: HexGrid, config: GeneratorConfig, random: () => numb
     }
   }
 
-  const scatterChance = 0.02 + intensity * 0.05;
+  const scatterChance = ELEVATION_SCATTER_BASE + intensity * ELEVATION_SCATTER_MULTIPLIER;
   const scatterRowMax = config.symmetry ? Math.floor(GRID_ROWS / 2) : GRID_ROWS;
   for (let col = 0; col < GRID_COLUMNS; col++) {
     for (let row = 0; row < scatterRowMax; row++) {

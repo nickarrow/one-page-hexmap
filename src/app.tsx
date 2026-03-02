@@ -14,6 +14,7 @@ import {
   DEFAULT_CLUSTER_SPACING,
   DEFAULT_SYMMETRY,
   DEFAULT_STRICT_LOS,
+  DEFAULT_PIECE_SIZE,
 } from './lib/constants';
 import { Sidebar } from './components/Sidebar';
 import { MapPreview } from './components/MapPreview';
@@ -24,7 +25,7 @@ const initialConfig: GeneratorConfig = {
   seed: generateSeed(),
   density: DEFAULT_DENSITY,
   terrainMix: { ...DEFAULT_TERRAIN_MIX },
-  pieceSize: 0.5,
+  pieceSize: DEFAULT_PIECE_SIZE,
   clusterSpacing: DEFAULT_CLUSTER_SPACING,
   symmetry: DEFAULT_SYMMETRY,
   strictLOS: DEFAULT_STRICT_LOS,

@@ -114,6 +114,13 @@ export const MAX_TERRAIN_GAP_HEXES = 12;
 /** Minimum passage width between terrain (in hexes) */
 export const MIN_PASSAGE_WIDTH_HEXES = 6;
 
+/**
+ * Strategic rows for LOS blocking checks.
+ * These divide the 24-row grid into quarters (rows 6, 12, 18).
+ * Deployment is along top/bottom edges, so we block vertical sightlines.
+ */
+export const STRATEGIC_LOS_ROWS = [6, 12, 18];
+
 // =============================================================================
 // TERRAIN PIECE SIZES (in hexes)
 // =============================================================================
@@ -142,6 +149,53 @@ export const ELEVATION_DEFAULT_MAX = 2;
 
 /** Elevation change that is climbable (±1) */
 export const CLIMBABLE_ELEVATION_DIFF = 1;
+
+// =============================================================================
+// ELEVATION GENERATION TUNING
+// =============================================================================
+
+/**
+ * Elevation cluster count formula: BASE + intensity * MULTIPLIER
+ * At intensity 0: 3 clusters, at intensity 1: 11 clusters
+ */
+export const ELEVATION_CLUSTER_COUNT_BASE = 3;
+export const ELEVATION_CLUSTER_COUNT_MULTIPLIER = 8;
+
+/**
+ * Elevation cluster size formula: BASE + intensity * MULTIPLIER
+ * At intensity 0: 3 hexes, at intensity 1: 9 hexes
+ */
+export const ELEVATION_CLUSTER_SIZE_BASE = 3;
+export const ELEVATION_CLUSTER_SIZE_MULTIPLIER = 6;
+
+/**
+ * Probability thresholds for elevation levels.
+ * Roll < HIGH_ELEVATION: level 3-4 (10% chance)
+ * Roll < MID_ELEVATION: level 2 (20% chance)
+ * Roll < LOW_ELEVATION: level 1 (40% chance)
+ * Otherwise: level -1 (30% chance)
+ */
+export const ELEVATION_PROB_HIGH = 0.1;
+export const ELEVATION_PROB_MID = 0.3;
+export const ELEVATION_PROB_LOW = 0.7;
+
+/**
+ * Scatter elevation formula: BASE + intensity * MULTIPLIER
+ * Random single-hex elevation changes across the map
+ */
+export const ELEVATION_SCATTER_BASE = 0.02;
+export const ELEVATION_SCATTER_MULTIPLIER = 0.05;
+
+// =============================================================================
+// SPACING TUNING
+// =============================================================================
+
+/**
+ * Piece count thresholds for reducing cluster spacing.
+ * As more pieces are placed, spacing is reduced to ensure they fit.
+ */
+export const SPACING_REDUCTION_THRESHOLD_HIGH = 15;
+export const SPACING_REDUCTION_THRESHOLD_LOW = 8;
 
 // =============================================================================
 // GENERATOR DEFAULTS
@@ -174,6 +228,9 @@ export const DEFAULT_ELEVATION = {
   maxLevel: ELEVATION_DEFAULT_MAX,
   intensity: 0.5,
 };
+
+/** Default piece size (0=small, 0.5=medium, 1=large) */
+export const DEFAULT_PIECE_SIZE = 0.5;
 
 // =============================================================================
 // UI

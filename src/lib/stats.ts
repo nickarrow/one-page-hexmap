@@ -4,7 +4,7 @@
 
 import type { HexGrid, MapStats } from './types';
 import { TERRAIN_PROPERTIES } from './types';
-import { GRID_COLUMNS, GRID_ROWS, TOTAL_HEXES } from './constants';
+import { GRID_COLUMNS, GRID_ROWS, TOTAL_HEXES, STRATEGIC_LOS_ROWS } from './constants';
 import { hexDistance } from './hexUtils';
 
 /**
@@ -92,13 +92,11 @@ export function calculateMapStats(grid: HexGrid): MapStats {
 
 /**
  * Check if edge-to-edge LOS is blocked.
- * We check 3 strategic rows that divide the map into quarters.
+ * We check strategic rows that divide the map into quarters.
  * Deployment is along long edges (top/bottom), so we block vertical sightlines.
  */
 function checkLOSBlocked(grid: HexGrid): boolean {
-  const strategicRows = [6, 12, 18]; // Roughly quarters of the 24-row grid
-
-  for (const row of strategicRows) {
+  for (const row of STRATEGIC_LOS_ROWS) {
     let hasBlocker = false;
     for (let col = 0; col < GRID_COLUMNS; col++) {
       const terrain = grid[col][row].terrain;
