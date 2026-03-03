@@ -33,6 +33,11 @@ export default [
         SVGPathElement: 'readonly',
         SVGTextElement: 'readonly',
         preact: 'readonly',
+        MouseEvent: 'readonly',
+        Node: 'readonly',
+        Blob: 'readonly',
+        URL: 'readonly',
+        Image: 'readonly',
       },
     },
     plugins: {

@@ -56,7 +56,6 @@ function legendHexPoints(cx: number, cy: number, size: number): string {
   return points.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
 }
 
-
 /**
  * Generate inline pattern SVG content for a hex.
  */
@@ -126,7 +125,6 @@ function generateElevationContoursSVG(
 
   return contours;
 }
-
 
 /**
  * Get overlay legend name lines.
@@ -221,7 +219,6 @@ function generateHexSampleSVG(
   return svg;
 }
 
-
 /**
  * Generate legend overlay SVG content.
  */
@@ -311,7 +308,6 @@ function generateLegendOverlaySVG(
     </g>
   `;
 }
-
 
 /**
  * Generate the complete map SVG as a string.
@@ -403,7 +399,6 @@ export function generateMapSVG(grid: HexGrid, seed: string, display: DisplayConf
 </svg>`;
 }
 
-
 /**
  * Generate the legend page SVG as a string.
  */
@@ -469,7 +464,6 @@ export function generateLegendSVG(grid: HexGrid, seed: string): string {
 </svg>`;
 }
 
-
 /**
  * Trigger a file download.
  */
@@ -495,7 +489,11 @@ export function exportSVG(svgString: string, filename: string): void {
 /**
  * Convert SVG string to PNG and download.
  */
-export function exportPNG(svgString: string, filename: string, scale: number = PNG_SCALE): Promise<void> {
+export function exportPNG(
+  svgString: string,
+  filename: string,
+  scale: number = PNG_SCALE
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
