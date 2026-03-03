@@ -299,6 +299,55 @@ export function generatePatternDefs(): string {
 }
 
 /**
+ * Get pattern definition for a terrain type.
+ * Used for inline rendering to avoid Chrome print rasterization issues.
+ */
+export function getPatternDef(terrain: TerrainType): PatternDef | null {
+  return PATTERN_DEFS[terrain];
+}
+
+/**
+ * Generate inline pattern elements for a hex.
+ * This renders the pattern directly as SVG elements clipped to the hex shape,
+ * bypassing Chrome's pattern rasterization that causes blurry prints.
+ *
+ * @param terrain - The terrain type
+ * @param centerX - Hex center X coordinate
+ * @param centerY - Hex center Y coordinate
+ * @param hexWidth - Width of the hex
+ * @param hexHeight - Height of the hex
+ * @returns SVG string with pattern elements, or null for open/blocking
+ */
+export function generateInlinePattern(
+  terrain: TerrainType,
+  centerX: number,
+  centerY: number,
+  hexWidth: number,
+  hexHeight: number
+): string | null {
+  const def = PATTERN_DEFS[terrain];
+  if (!def) return null;
+
+  // Calculate bounding box for the hex
+  const left = centerX - hexWidth / 2;
+  const top = centerY - hexHeight / 2;
+  const right = centerX + hexWidth / 2;
+  const bottom = centerY + hexHeight / 2;
+
+  // Generate tiled pattern content
+  const tiles: string[] = [];
+
+  // Tile the pattern across the hex bounding box
+  for (let x = left - def.width; x < right + def.width; x += def.width) {
+    for (let y = top - def.height; y < bottom + def.height; y += def.height) {
+      tiles.push(`<g transform="translate(${x}, ${y})">${def.content}</g>`);
+    }
+  }
+
+  return tiles.join('');
+}
+
+/**
  * Get display name for a terrain type.
  */
 export function getTerrainDisplayName(terrain: TerrainType): string {

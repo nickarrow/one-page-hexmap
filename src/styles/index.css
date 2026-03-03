@@ -13,25 +13,29 @@ body,
 
 /* Print styles */
 @media print {
-  /* Hide everything except the map */
-  body * {
-    visibility: hidden;
+  /* Reset for print */
+  html,
+  body,
+  #root {
+    height: auto;
+    overflow: visible;
   }
 
-  main,
-  main * {
-    visibility: visible;
+  /* Hide sidebar */
+  aside {
+    display: none !important;
   }
 
+  /* Main map page */
   main {
-    position: absolute;
-    left: 0;
-    top: 0;
+    position: relative;
     width: 100%;
-    height: 100%;
+    height: 100vh;
     padding: 0 !important;
     margin: 0 !important;
     background: white !important;
+    display: block !important;
+    page-break-after: auto;
   }
 
   main > div {
@@ -40,22 +44,61 @@ body,
     max-width: none !important;
     max-height: none !important;
     box-shadow: none !important;
+    display: block !important;
+  }
+
+  main > div > div {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    aspect-ratio: auto !important;
+  }
+
+  /* Legend page - separate page */
+  .legend-page {
+    display: block !important;
+    visibility: visible !important;
+    page-break-before: always;
+    width: 100%;
+    height: 100vh;
+    background: white;
+  }
+
+  .legend-page svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Force print background colors/patterns */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   /* Ensure crisp vector rendering */
   svg {
     shape-rendering: geometricPrecision;
+    image-rendering: optimizeQuality;
   }
 
-  /* Force black strokes for printing */
-  svg polygon {
-    stroke: #000 !important;
+  /* Hide stats modal if open */
+  .fixed {
+    display: none !important;
   }
 }
 
+/* Default page settings - US Letter landscape, no margins for browser headers */
 @page {
   size: letter landscape;
-  margin: 0.2in;
+  margin: 0;
+}
+
+/* A4 landscape support */
+@page a4 {
+  size: A4 landscape;
+  margin: 0;
 }
 
 /* Slider styling */

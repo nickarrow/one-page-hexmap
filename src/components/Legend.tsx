@@ -1,17 +1,16 @@
 /**
  * Legend component - renders terrain type legend.
  * Can be used as an overlay on the map or as a separate printable page.
+ *
+ * Uses inline pattern rendering with clipPath to avoid Chrome's pattern
+ * rasterization that causes blurry prints.
  */
 
+import React from 'react';
 import type { TerrainType, HexGrid } from '../lib/types';
 import { TERRAIN_PROPERTIES } from '../lib/types';
 import { HEX_WIDTH_PX } from '../lib/constants';
-import {
-  getTerrainFill,
-  getTerrainDisplayName,
-  getTerrainRuleText,
-  generatePatternDefs,
-} from '../lib/patterns';
+import { getTerrainDisplayName, getTerrainRuleText, getPatternDef } from '../lib/patterns';
 import { getUniqueTerrainTypes } from '../lib/hexUtils';
 
 interface LegendProps {
@@ -39,30 +38,96 @@ function legendHexPoints(cx: number, cy: number, size: number): string {
 }
 
 /**
- * Render a single hex sample with terrain pattern.
+ * Get the base fill color for a terrain type (no pattern).
+ */
+function getBaseFill(terrain: TerrainType): string {
+  if (terrain === 'open') return '#ffffff';
+  if (terrain === 'blocking') return '#1a1a1a';
+  if (terrain === 'impassable') return '#e0e0e0';
+  return '#ffffff';
+}
+
+/**
+ * Render inline pattern elements for a legend hex, clipped to the hex shape.
+ */
+function InlineLegendPattern({
+  terrain,
+  cx,
+  cy,
+  size,
+  clipId,
+}: {
+  terrain: TerrainType;
+  cx: number;
+  cy: number;
+  size: number;
+  clipId: string;
+}) {
+  const def = getPatternDef(terrain);
+  if (!def) return null;
+
+  const hexHeight = size * HEX_HEIGHT_RATIO;
+
+  // Calculate bounding box for the hex
+  const left = cx - size / 2 - def.width;
+  const top = cy - hexHeight / 2 - def.height;
+  const right = cx + size / 2 + def.width;
+  const bottom = cy + hexHeight / 2 + def.height;
+
+  // Generate tiled pattern content
+  const tiles: React.ReactElement[] = [];
+  let tileIndex = 0;
+
+  for (let x = left; x < right; x += def.width) {
+    for (let y = top; y < bottom; y += def.height) {
+      tiles.push(
+        <g
+          key={tileIndex++}
+          transform={`translate(${x}, ${y})`}
+          dangerouslySetInnerHTML={{ __html: def.content }}
+        />
+      );
+    }
+  }
+
+  return <g clipPath={`url(#${clipId})`}>{tiles}</g>;
+}
+
+/**
+ * Render a single hex sample with terrain pattern using inline rendering.
  */
 function HexSample({
   terrain,
   cx,
   cy,
   size,
+  clipId,
 }: {
   terrain: TerrainType;
   cx: number;
   cy: number;
   size: number;
+  clipId: string;
 }) {
-  const fill = getTerrainFill(terrain);
   const props = TERRAIN_PROPERTIES[terrain];
   const strokeColor = props.blocking ? '#000' : '#999';
+  const baseFill = getBaseFill(terrain);
+  const hasPattern = terrain !== 'open' && terrain !== 'blocking';
+  const points = legendHexPoints(cx, cy, size);
 
   return (
-    <polygon
-      points={legendHexPoints(cx, cy, size)}
-      fill={fill}
-      stroke={strokeColor}
-      strokeWidth="0.5"
-    />
+    <g>
+      {/* Hex base fill */}
+      <polygon points={points} fill={baseFill} stroke={strokeColor} strokeWidth="0.5" />
+
+      {/* Inline pattern (clipped to hex shape) */}
+      {hasPattern && (
+        <InlineLegendPattern terrain={terrain} cx={cx} cy={cy} size={size} clipId={clipId} />
+      )}
+
+      {/* Hex outline (drawn again on top for crisp edges) */}
+      {hasPattern && <polygon points={points} fill="none" stroke={strokeColor} strokeWidth="0.5" />}
+    </g>
   );
 }
 
@@ -148,6 +213,20 @@ export function LegendOverlay({ grid, svgHeight }: { grid: HexGrid; svgHeight: n
 
   return (
     <g className="legend-overlay" transform={`translate(0, ${yOffset})`}>
+      {/* ClipPath definitions for legend hex samples */}
+      <defs>
+        {terrainTypes.map((terrain, i) => {
+          const y = yPositions[i];
+          const hexCx = padding + hexSize / 2;
+          const points = legendHexPoints(hexCx, y, hexSize);
+          return (
+            <clipPath key={`legend-clip-${terrain}`} id={`legend-clip-${terrain}`}>
+              <polygon points={points} />
+            </clipPath>
+          );
+        })}
+      </defs>
+
       {/* Background with subtle border */}
       <rect
         x={0}
@@ -188,7 +267,13 @@ export function LegendOverlay({ grid, svgHeight }: { grid: HexGrid; svgHeight: n
 
         return (
           <g key={terrain}>
-            <HexSample terrain={terrain} cx={hexCx} cy={y} size={hexSize} />
+            <HexSample
+              terrain={terrain}
+              cx={hexCx}
+              cy={y}
+              size={hexSize}
+              clipId={`legend-clip-${terrain}`}
+            />
 
             {/* Name (possibly multi-line) */}
             <text
@@ -252,8 +337,22 @@ export function LegendPage({ grid, seed }: { grid: HexGrid; seed: string }) {
       style={{ backgroundColor: 'white' }}
       preserveAspectRatio="xMidYMid meet"
     >
-      {/* Pattern definitions - same as map */}
-      <defs dangerouslySetInnerHTML={{ __html: generatePatternDefs() }} />
+      {/* ClipPath definitions for legend hex samples */}
+      <defs>
+        {terrainTypes.map((terrain, i) => {
+          const col = useColumns ? Math.floor(i / itemsPerCol) : 0;
+          const row = useColumns ? i % itemsPerCol : i;
+          const x = col * colWidth + margin + 60;
+          const y = row * rowHeight + rowHeight / 2 + margin + 80;
+          const hexCx = x + hexSize / 2;
+          const points = legendHexPoints(hexCx, y, hexSize);
+          return (
+            <clipPath key={`page-clip-${terrain}`} id={`page-clip-${terrain}`}>
+              <polygon points={points} />
+            </clipPath>
+          );
+        })}
+      </defs>
 
       {/* Background */}
       <rect width={pageWidth} height={pageHeight} fill="white" />
@@ -293,7 +392,13 @@ export function LegendPage({ grid, seed }: { grid: HexGrid; seed: string }) {
 
           return (
             <g key={terrain} transform={`translate(${x}, ${y})`}>
-              <HexSample terrain={terrain} cx={hexCx} cy={0} size={hexSize} />
+              <HexSample
+                terrain={terrain}
+                cx={hexCx}
+                cy={0}
+                size={hexSize}
+                clipId={`page-clip-${terrain}`}
+              />
               <text
                 x={hexCx + hexSize / 2 + 16}
                 y={-6}

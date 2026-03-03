@@ -65,7 +65,7 @@ export function App() {
   };
 
   return (
-    <div className="h-screen flex overflow-hidden">
+    <div className="h-screen flex overflow-hidden print:block print:h-auto print:overflow-visible">
       {/* Sidebar - hidden when printing */}
       <div className="print:hidden flex-shrink-0">
         <Sidebar
@@ -80,10 +80,10 @@ export function App() {
       </div>
 
       {/* Main content - map preview */}
-      <main className="flex-1 bg-gray-200 p-4 print:p-0 print:bg-white flex items-center justify-center overflow-hidden">
-        <div className="w-full h-full flex items-center justify-center">
+      <main className="flex-1 bg-gray-200 p-4 print:p-0 print:bg-white flex items-center justify-center overflow-hidden print:block print:overflow-visible">
+        <div className="w-full h-full flex items-center justify-center print:block print:w-auto print:h-auto">
           <div
-            className="bg-white shadow-lg print:shadow-none max-w-full max-h-full"
+            className="bg-white shadow-lg print:shadow-none max-w-full max-h-full print:max-w-none print:max-h-none print:w-full print:h-full"
             style={{
               aspectRatio: '11 / 8.5',
               width: 'min(100%, calc((100vh - 2rem) * 11 / 8.5))',
@@ -100,17 +100,8 @@ export function App() {
 
       {/* Separate Legend Page - only visible when printing in 'separate' mode */}
       {display.legendMode === 'separate' && (
-        <div className="hidden print:block print:break-before-page">
-          <div
-            style={{
-              width: '11in',
-              height: '8.5in',
-              padding: '0.2in',
-              boxSizing: 'border-box',
-            }}
-          >
-            <LegendPage grid={grid} seed={config.seed} />
-          </div>
+        <div className="legend-page hidden print:block">
+          <LegendPage grid={grid} seed={config.seed} />
         </div>
       )}
     </div>

@@ -1,13 +1,16 @@
 /**
  * MapPreview component - renders the hex grid as SVG.
  * This is the WYSIWYG print preview.
+ *
+ * Uses inline pattern rendering with clipPath instead of SVG <pattern> elements
+ * to avoid Chrome's pattern rasterization that causes blurry prints.
  */
 
 import React from 'react';
-import type { HexGrid, DisplayConfig } from '../lib/types';
+import type { HexGrid, DisplayConfig, TerrainType } from '../lib/types';
 import { TERRAIN_PROPERTIES } from '../lib/types';
 import { HEX_WIDTH_PX, HEX_HEIGHT_RATIO, GRID_WIDTH_PX, GRID_HEIGHT_PX } from '../lib/constants';
-import { generatePatternDefs, getTerrainFill } from '../lib/patterns';
+import { generatePatternDefs, getPatternDef } from '../lib/patterns';
 import { hexCenter, hexPoints } from '../lib/hexUtils';
 import { LegendOverlay } from './Legend';
 
@@ -24,6 +27,62 @@ const PADDING = 8;
 const SVG_WIDTH = GRID_WIDTH_PX + PADDING * 2;
 const SVG_HEIGHT = GRID_HEIGHT_PX + PADDING * 2;
 
+// Hex height for pattern calculations
+const HEX_HEIGHT_PX = HEX_WIDTH_PX * HEX_HEIGHT_RATIO;
+
+/**
+ * Get the base fill color for a terrain type (no pattern).
+ */
+function getBaseFill(terrain: TerrainType): string {
+  if (terrain === 'open') return '#ffffff';
+  if (terrain === 'blocking') return '#1a1a1a';
+  if (terrain === 'impassable') return '#e0e0e0';
+  return '#ffffff';
+}
+
+/**
+ * Render inline pattern elements for a hex, clipped to the hex shape.
+ * This bypasses Chrome's SVG pattern rasterization for crisp prints.
+ */
+function InlineHexPattern({
+  terrain,
+  centerX,
+  centerY,
+  clipId,
+}: {
+  terrain: TerrainType;
+  centerX: number;
+  centerY: number;
+  clipId: string;
+}) {
+  const def = getPatternDef(terrain);
+  if (!def) return null;
+
+  // Calculate bounding box for the hex (with some padding for safety)
+  const left = centerX - HEX_WIDTH_PX / 2 - def.width;
+  const top = centerY - HEX_HEIGHT_PX / 2 - def.height;
+  const right = centerX + HEX_WIDTH_PX / 2 + def.width;
+  const bottom = centerY + HEX_HEIGHT_PX / 2 + def.height;
+
+  // Generate tiled pattern content
+  const tiles: React.ReactElement[] = [];
+  let tileIndex = 0;
+
+  for (let x = left; x < right; x += def.width) {
+    for (let y = top; y < bottom; y += def.height) {
+      tiles.push(
+        <g
+          key={tileIndex++}
+          transform={`translate(${x}, ${y})`}
+          dangerouslySetInnerHTML={{ __html: def.content }}
+        />
+      );
+    }
+  }
+
+  return <g clipPath={`url(#${clipId})`}>{tiles}</g>;
+}
+
 export function MapPreview({ grid, seed, display }: MapPreviewProps) {
   return (
     <svg
@@ -32,8 +91,27 @@ export function MapPreview({ grid, seed, display }: MapPreviewProps) {
       style={{ backgroundColor: 'white' }}
       preserveAspectRatio="xMidYMid meet"
     >
-      {/* Pattern definitions */}
+      {/* Pattern definitions - kept for legend rendering */}
       <defs dangerouslySetInnerHTML={{ __html: generatePatternDefs() }} />
+
+      {/* ClipPath definitions for each hex with a pattern */}
+      <defs>
+        {grid.map((column, col) =>
+          column.map((hex, row) => {
+            const terrain = hex.terrain;
+            if (terrain === 'open' || terrain === 'blocking') return null;
+
+            const center = hexCenter(col, row, HEX_WIDTH_PX);
+            const points = hexPoints(center.x, center.y, HEX_WIDTH_PX);
+
+            return (
+              <clipPath key={`clip-${col}-${row}`} id={`clip-${col}-${row}`}>
+                <polygon points={points} />
+              </clipPath>
+            );
+          })
+        )}
+      </defs>
 
       {/* Background */}
       <rect width={SVG_WIDTH} height={SVG_HEIGHT} fill="white" />
@@ -57,15 +135,31 @@ export function MapPreview({ grid, seed, display }: MapPreviewProps) {
           column.map((hex, row) => {
             const center = hexCenter(col, row, HEX_WIDTH_PX);
             const points = hexPoints(center.x, center.y, HEX_WIDTH_PX);
-            const fill = getTerrainFill(hex.terrain);
             const props = TERRAIN_PROPERTIES[hex.terrain];
+            const baseFill = getBaseFill(hex.terrain);
+            const hasPattern = hex.terrain !== 'open' && hex.terrain !== 'blocking';
 
             const strokeColor = props.blocking ? '#000' : '#999';
 
             return (
               <g key={`${col}-${row}`}>
-                {/* Hex shape */}
-                <polygon points={points} fill={fill} stroke={strokeColor} strokeWidth="0.5" />
+                {/* Hex base fill */}
+                <polygon points={points} fill={baseFill} stroke={strokeColor} strokeWidth="0.5" />
+
+                {/* Inline pattern (clipped to hex shape) */}
+                {hasPattern && (
+                  <InlineHexPattern
+                    terrain={hex.terrain}
+                    centerX={center.x}
+                    centerY={center.y}
+                    clipId={`clip-${col}-${row}`}
+                  />
+                )}
+
+                {/* Hex outline (drawn again on top for crisp edges) */}
+                {hasPattern && (
+                  <polygon points={points} fill="none" stroke={strokeColor} strokeWidth="0.5" />
+                )}
 
                 {/* Elevation contour lines */}
                 {hex.elevation !== 0 && !props.blocking && !props.impassable && (
@@ -88,7 +182,6 @@ export function MapPreview({ grid, seed, display }: MapPreviewProps) {
                       rx={2}
                       ry={2}
                       fill="white"
-                      opacity={0.85}
                     />
                     <text
                       x={center.x}
