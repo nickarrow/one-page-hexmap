@@ -27,13 +27,14 @@ The v2 implementation is built from scratch with:
 - **Seed-based generation** for reproducible/shareable maps
 - **Print-ready output** - US Letter landscape, WYSIWYG preview
 - **Responsive sidebar** with density, terrain mix, and elevation controls
+- **Map legend for printed output** with multiple display and print options
+
 
 ### Not Yet Implemented
 
 - [ ] Actual print stylesheet testing/refinement
 - [ ] SVG download/export
 - [ ] Shareable URL with seed parameter
-- [ ] Map legend for printed output
 - [ ] Thematic background layer (future feature - procedural terrain illustration behind hex grid)
 
 ## Terrain System

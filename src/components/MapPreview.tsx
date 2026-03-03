@@ -9,6 +9,7 @@ import { TERRAIN_PROPERTIES } from '../lib/types';
 import { HEX_WIDTH_PX, HEX_HEIGHT_RATIO, GRID_WIDTH_PX, GRID_HEIGHT_PX } from '../lib/constants';
 import { generatePatternDefs, getTerrainFill } from '../lib/patterns';
 import { hexCenter, hexPoints } from '../lib/hexUtils';
+import { LegendOverlay } from './Legend';
 
 interface MapPreviewProps {
   grid: HexGrid;
@@ -121,6 +122,18 @@ export function MapPreview({ grid, seed, display }: MapPreviewProps) {
         >
           Seed: {seed}
         </text>
+      )}
+
+      {/* Legend overlay - positioned on right or left side, vertically centered */}
+      {display.legendMode === 'overlay-right' && (
+        <g transform={`translate(${SVG_WIDTH - HEX_WIDTH_PX * 2.4 - 2}, 0)`}>
+          <LegendOverlay grid={grid} svgHeight={SVG_HEIGHT} />
+        </g>
+      )}
+      {display.legendMode === 'overlay-left' && (
+        <g transform={`translate(2, 0)`}>
+          <LegendOverlay grid={grid} svgHeight={SVG_HEIGHT} />
+        </g>
       )}
     </svg>
   );

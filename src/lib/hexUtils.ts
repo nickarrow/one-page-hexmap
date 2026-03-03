@@ -191,3 +191,41 @@ export function hexPoints(centerX: number, centerY: number, hexWidth: number): s
 
   return points.map((p) => `${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(' ');
 }
+
+// =============================================================================
+// GRID ANALYSIS
+// =============================================================================
+
+import type { HexGrid, TerrainType } from './types';
+
+/**
+ * Get unique terrain types present in a grid (excluding 'open').
+ * Returns them in a consistent display order.
+ */
+export function getUniqueTerrainTypes(grid: HexGrid): TerrainType[] {
+  const found = new Set<TerrainType>();
+
+  for (let col = 0; col < GRID_COLUMNS; col++) {
+    for (let row = 0; row < GRID_ROWS; row++) {
+      const terrain = grid[col][row].terrain;
+      if (terrain !== 'open') {
+        found.add(terrain);
+      }
+    }
+  }
+
+  // Return in consistent order for display
+  const displayOrder: TerrainType[] = [
+    'blocking',
+    'impassable',
+    'cover',
+    'difficult',
+    'dangerous',
+    'cover-difficult',
+    'cover-dangerous',
+    'difficult-dangerous',
+    'cover-difficult-dangerous',
+  ];
+
+  return displayOrder.filter((t) => found.has(t));
+}

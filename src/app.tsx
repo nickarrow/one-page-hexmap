@@ -19,6 +19,7 @@ import {
 import { Sidebar } from './components/Sidebar';
 import { MapPreview } from './components/MapPreview';
 import { StatsModal } from './components/StatsModal';
+import { LegendPage } from './components/Legend';
 
 // Initial configuration
 const initialConfig: GeneratorConfig = {
@@ -35,6 +36,7 @@ const initialConfig: GeneratorConfig = {
 const initialDisplay: DisplayConfig = {
   showBorder: true,
   showSeed: true,
+  legendMode: 'none',
 };
 
 export function App() {
@@ -95,6 +97,22 @@ export function App() {
 
       {/* Stats Modal */}
       {showStats && <StatsModal stats={stats} onClose={() => setShowStats(false)} />}
+
+      {/* Separate Legend Page - only visible when printing in 'separate' mode */}
+      {display.legendMode === 'separate' && (
+        <div className="hidden print:block print:break-before-page">
+          <div
+            style={{
+              width: '11in',
+              height: '8.5in',
+              padding: '0.2in',
+              boxSizing: 'border-box',
+            }}
+          >
+            <LegendPage grid={grid} seed={config.seed} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

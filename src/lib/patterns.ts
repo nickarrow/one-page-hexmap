@@ -18,8 +18,8 @@ import type { TerrainType } from './types';
 // PATTERN CONFIGURATION
 // =============================================================================
 
-/** Base pattern tile size */
-const TILE_SIZE = 50;
+/** Base pattern tile size - smaller than hex to ensure visibility */
+const TILE_SIZE = 32;
 
 /** Stroke color for all patterns */
 const STROKE_COLOR = '#222';
@@ -36,15 +36,14 @@ const LAYER_OPACITY = 0.5;
 
 /**
  * Cover pattern element: solid rotated rectangles.
- * Represents debris, rubble, or structures providing cover.
- * Rectangles are fully opaque to cover underlying patterns.
- * Using gray tones to give visual depth while staying opaque.
+ * Designed with a central rectangle that's always visible,
+ * plus corner rectangles for variety when tiles repeat.
+ * Tile size matches hex dimensions to ensure at least one rectangle per hex.
  */
 const COVER_RECTANGLES = `
-  <rect x="8" y="10" width="14" height="11" fill="#444" transform="rotate(15 15 15.5)"/>
-  <rect x="30" y="28" width="11" height="9" fill="#555" transform="rotate(-12 35.5 32.5)"/>
-  <rect x="18" y="38" width="9" height="7" fill="#666" transform="rotate(25 22.5 41.5)"/>
-  <rect x="38" y="6" width="8" height="10" fill="#666" transform="rotate(-20 42 11)"/>
+  <rect x="10" y="10" width="12" height="10" fill="#444" transform="rotate(12 16 15)"/>
+  <rect x="2" y="2" width="8" height="6" fill="#555" transform="rotate(-15 6 5)"/>
+  <rect x="22" y="22" width="8" height="6" fill="#555" transform="rotate(20 26 25)"/>
 `;
 
 /**
@@ -59,64 +58,67 @@ const DIFFICULT_DIAGONALS = `
 
 /**
  * Dangerous pattern element: X marks.
- * Smaller X marks, densely packed to ensure visibility in every hex.
+ * Smaller tile ensures X marks appear in every hex.
+ * X is centered in the tile.
  */
-const DANGEROUS_TILE = 16;
+const DANGEROUS_TILE = 14;
 const DANGEROUS_X_MARKS = `
-  <line x1="4" y1="4" x2="12" y2="12" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-  <line x1="12" y1="4" x2="4" y2="12" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+  <line x1="3" y1="3" x2="11" y2="11" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+  <line x1="11" y1="3" x2="3" y2="11" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
 `;
 
 /**
- * Muted diagonal lines for combo patterns (denser).
+ * Muted diagonal lines for combo patterns.
+ * Sized for 32px tile.
  */
 const MUTED_DIAGONALS = `
-  <line x1="0" y1="12" x2="12" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+  <line x1="0" y1="8" x2="8" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+  <line x1="0" y1="16" x2="16" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
   <line x1="0" y1="24" x2="24" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
-  <line x1="0" y1="36" x2="36" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
-  <line x1="0" y1="48" x2="48" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
-  <line x1="12" y1="50" x2="50" y2="12" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
-  <line x1="24" y1="50" x2="50" y2="24" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
-  <line x1="36" y1="50" x2="50" y2="36" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+  <line x1="0" y1="32" x2="32" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+  <line x1="8" y1="32" x2="32" y2="8" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+  <line x1="16" y1="32" x2="32" y2="16" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
+  <line x1="24" y1="32" x2="32" y2="24" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.3"/>
 `;
 
 /**
  * Dense crosshatch for cover+difficult+dangerous.
+ * Sized for 32px tile.
  */
 const DENSE_CROSSHATCH = `
-  <g stroke="${STROKE_COLOR}" stroke-width="2" opacity="${LAYER_OPACITY}">
-    <line x1="0" y1="0" x2="12" y2="12"/>
-    <line x1="12" y1="0" x2="0" y2="12"/>
-    <line x1="12" y1="0" x2="24" y2="12"/>
-    <line x1="24" y1="0" x2="12" y2="12"/>
-    <line x1="24" y1="0" x2="36" y2="12"/>
-    <line x1="36" y1="0" x2="24" y2="12"/>
-    <line x1="36" y1="0" x2="48" y2="12"/>
-    <line x1="48" y1="0" x2="36" y2="12"/>
-    <line x1="0" y1="12" x2="12" y2="24"/>
-    <line x1="12" y1="12" x2="0" y2="24"/>
-    <line x1="12" y1="12" x2="24" y2="24"/>
-    <line x1="24" y1="12" x2="12" y2="24"/>
-    <line x1="24" y1="12" x2="36" y2="24"/>
-    <line x1="36" y1="12" x2="24" y2="24"/>
-    <line x1="36" y1="12" x2="48" y2="24"/>
-    <line x1="48" y1="12" x2="36" y2="24"/>
-    <line x1="0" y1="24" x2="12" y2="36"/>
-    <line x1="12" y1="24" x2="0" y2="36"/>
-    <line x1="12" y1="24" x2="24" y2="36"/>
-    <line x1="24" y1="24" x2="12" y2="36"/>
-    <line x1="24" y1="24" x2="36" y2="36"/>
-    <line x1="36" y1="24" x2="24" y2="36"/>
-    <line x1="36" y1="24" x2="48" y2="36"/>
-    <line x1="48" y1="24" x2="36" y2="36"/>
-    <line x1="0" y1="36" x2="12" y2="48"/>
-    <line x1="12" y1="36" x2="0" y2="48"/>
-    <line x1="12" y1="36" x2="24" y2="48"/>
-    <line x1="24" y1="36" x2="12" y2="48"/>
-    <line x1="24" y1="36" x2="36" y2="48"/>
-    <line x1="36" y1="36" x2="24" y2="48"/>
-    <line x1="36" y1="36" x2="48" y2="48"/>
-    <line x1="48" y1="36" x2="36" y2="48"/>
+  <g stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="${LAYER_OPACITY}">
+    <line x1="0" y1="0" x2="8" y2="8"/>
+    <line x1="8" y1="0" x2="0" y2="8"/>
+    <line x1="8" y1="0" x2="16" y2="8"/>
+    <line x1="16" y1="0" x2="8" y2="8"/>
+    <line x1="16" y1="0" x2="24" y2="8"/>
+    <line x1="24" y1="0" x2="16" y2="8"/>
+    <line x1="24" y1="0" x2="32" y2="8"/>
+    <line x1="32" y1="0" x2="24" y2="8"/>
+    <line x1="0" y1="8" x2="8" y2="16"/>
+    <line x1="8" y1="8" x2="0" y2="16"/>
+    <line x1="8" y1="8" x2="16" y2="16"/>
+    <line x1="16" y1="8" x2="8" y2="16"/>
+    <line x1="16" y1="8" x2="24" y2="16"/>
+    <line x1="24" y1="8" x2="16" y2="16"/>
+    <line x1="24" y1="8" x2="32" y2="16"/>
+    <line x1="32" y1="8" x2="24" y2="16"/>
+    <line x1="0" y1="16" x2="8" y2="24"/>
+    <line x1="8" y1="16" x2="0" y2="24"/>
+    <line x1="8" y1="16" x2="16" y2="24"/>
+    <line x1="16" y1="16" x2="8" y2="24"/>
+    <line x1="16" y1="16" x2="24" y2="24"/>
+    <line x1="24" y1="16" x2="16" y2="24"/>
+    <line x1="24" y1="16" x2="32" y2="24"/>
+    <line x1="32" y1="16" x2="24" y2="24"/>
+    <line x1="0" y1="24" x2="8" y2="32"/>
+    <line x1="8" y1="24" x2="0" y2="32"/>
+    <line x1="8" y1="24" x2="16" y2="32"/>
+    <line x1="16" y1="24" x2="8" y2="32"/>
+    <line x1="16" y1="24" x2="24" y2="32"/>
+    <line x1="24" y1="24" x2="16" y2="32"/>
+    <line x1="24" y1="24" x2="32" y2="32"/>
+    <line x1="32" y1="24" x2="24" y2="32"/>
   </g>
 `;
 
@@ -194,7 +196,7 @@ const PATTERN_DEFS: Record<TerrainType, PatternDef | null> = {
     `,
   },
 
-  // Cover + Dangerous: rectangles with small X marks overlay
+  // Cover + Dangerous: rectangles with X marks positioned to avoid overlap
   'cover-dangerous': {
     id: 'pattern-cover-dangerous',
     width: TILE_SIZE,
@@ -203,19 +205,15 @@ const PATTERN_DEFS: Record<TerrainType, PatternDef | null> = {
       <rect width="${TILE_SIZE}" height="${TILE_SIZE}" fill="${BG_COLOR}"/>
       ${COVER_RECTANGLES}
       <g>
-        <line x1="2" y1="2" x2="10" y2="10" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="10" y1="2" x2="2" y2="10" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="22" y1="18" x2="30" y2="26" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="30" y1="18" x2="22" y2="26" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="40" y1="40" x2="48" y2="48" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="48" y1="40" x2="40" y2="48" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="6" y1="32" x2="14" y2="40" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="14" y1="32" x2="6" y2="40" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="24" y1="2" x2="30" y2="8" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="30" y1="2" x2="24" y2="8" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="2" y1="24" x2="8" y2="30" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="8" y1="24" x2="2" y2="30" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
       </g>
     `,
   },
 
-  // Difficult + Dangerous: dense diagonals with small X marks
+  // Difficult + Dangerous: dense diagonals with multiple small X marks
   'difficult-dangerous': {
     id: 'pattern-difficult-dangerous',
     width: TILE_SIZE,
@@ -223,23 +221,21 @@ const PATTERN_DEFS: Record<TerrainType, PatternDef | null> = {
     content: `
       <rect width="${TILE_SIZE}" height="${TILE_SIZE}" fill="${BG_COLOR}"/>
       <g>
-        <line x1="0" y1="12" x2="12" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="0" y1="8" x2="8" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="0" y1="16" x2="16" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
         <line x1="0" y1="24" x2="24" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
-        <line x1="0" y1="36" x2="36" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
-        <line x1="0" y1="48" x2="48" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
-        <line x1="12" y1="50" x2="50" y2="12" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
-        <line x1="24" y1="50" x2="50" y2="24" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
-        <line x1="36" y1="50" x2="50" y2="36" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="0" y1="32" x2="32" y2="0" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="8" y1="32" x2="32" y2="8" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="16" y1="32" x2="32" y2="16" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="24" y1="32" x2="32" y2="24" stroke="${STROKE_COLOR}" stroke-width="1.5" opacity="0.5"/>
       </g>
       <g>
-        <line x1="2" y1="2" x2="10" y2="10" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="10" y1="2" x2="2" y2="10" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="22" y1="18" x2="30" y2="26" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="30" y1="18" x2="22" y2="26" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="40" y1="40" x2="48" y2="48" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="48" y1="40" x2="40" y2="48" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="6" y1="32" x2="14" y2="40" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
-        <line x1="14" y1="32" x2="6" y2="40" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="12" y1="12" x2="20" y2="20" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="20" y1="12" x2="12" y2="20" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="2" y1="2" x2="8" y2="8" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="8" y1="2" x2="2" y2="8" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="24" y1="24" x2="30" y2="30" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
+        <line x1="30" y1="24" x2="24" y2="30" stroke="${STROKE_COLOR}" stroke-width="1.8"/>
       </g>
     `,
   },
@@ -252,8 +248,7 @@ const PATTERN_DEFS: Record<TerrainType, PatternDef | null> = {
     content: `
       <rect width="${TILE_SIZE}" height="${TILE_SIZE}" fill="${BG_COLOR}"/>
       ${DENSE_CROSSHATCH}
-      <rect x="8" y="10" width="14" height="11" fill="#444" transform="rotate(15 15 15.5)"/>
-      <rect x="30" y="28" width="11" height="9" fill="#555" transform="rotate(-12 35.5 32.5)"/>
+      <rect x="10" y="10" width="12" height="10" fill="#444" transform="rotate(12 16 15)"/>
     `,
   },
 };
@@ -320,4 +315,23 @@ export function getTerrainDisplayName(terrain: TerrainType): string {
     'cover-difficult-dangerous': 'Cover + Difficult + Dangerous',
   };
   return names[terrain];
+}
+
+/**
+ * Get brief rule description for a terrain type (for legend).
+ */
+export function getTerrainRuleText(terrain: TerrainType): string {
+  const rules: Record<TerrainType, string> = {
+    open: 'No effect',
+    blocking: 'Blocks LOS & movement',
+    impassable: 'Blocks movement',
+    cover: '+1 Defense',
+    difficult: 'Max 3" move',
+    dangerous: 'Roll for wounds',
+    'cover-difficult': '+1 Def, max 3" move',
+    'cover-dangerous': '+1 Def, roll wounds',
+    'difficult-dangerous': 'Max 3", roll wounds',
+    'cover-difficult-dangerous': '+1 Def, 3", wounds',
+  };
+  return rules[terrain];
 }

@@ -215,6 +215,15 @@ export interface MapStats {
 // =============================================================================
 
 /**
+ * Legend display mode.
+ * - 'none': No legend shown
+ * - 'overlay-right': Legend overlaid on right side of map
+ * - 'overlay-left': Legend overlaid on left side of map
+ * - 'separate': Legend on separate printable page
+ */
+export type LegendMode = 'none' | 'overlay-right' | 'overlay-left' | 'separate';
+
+/**
  * Display options for the map preview.
  */
 export interface DisplayConfig {
@@ -222,4 +231,6 @@ export interface DisplayConfig {
   showBorder: boolean;
   /** Show seed watermark */
   showSeed: boolean;
+  /** Legend display mode */
+  legendMode: LegendMode;
 }

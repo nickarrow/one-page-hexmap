@@ -3,7 +3,7 @@
  * Compact layout to fit without scrolling.
  */
 
-import type { GeneratorConfig, DisplayConfig } from '../lib/types';
+import type { GeneratorConfig, DisplayConfig, LegendMode } from '../lib/types';
 import {
   DEFAULT_DENSITY,
   DEFAULT_TERRAIN_MIX,
@@ -230,7 +230,7 @@ export function Sidebar({
       {/* Display Options */}
       <div className="mb-3">
         <label className="text-xs font-semibold text-gray-600 block mb-1">Display</label>
-        <div className="flex gap-4">
+        <div className="flex gap-4 mb-2">
           <label className="flex items-center gap-1">
             <input
               type="checkbox"
@@ -249,6 +249,23 @@ export function Sidebar({
             />
             <span className="text-xs text-gray-600">Seed</span>
           </label>
+        </div>
+
+        {/* Legend Mode */}
+        <div className="mt-2">
+          <label className="text-[10px] text-gray-500 block mb-1">Legend</label>
+          <select
+            value={display.legendMode}
+            onChange={(e) =>
+              onDisplayChange({ ...display, legendMode: e.target.value as LegendMode })
+            }
+            className="w-full px-2 py-1 border rounded text-xs bg-white"
+          >
+            <option value="none">None</option>
+            <option value="overlay-right">On Map (right)</option>
+            <option value="overlay-left">On Map (left)</option>
+            <option value="separate">Separate Page</option>
+          </select>
         </div>
       </div>
 
