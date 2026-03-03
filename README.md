@@ -28,11 +28,10 @@ The v2 implementation is built from scratch with:
 - **Print-ready output** - US Letter landscape, WYSIWYG preview
 - **Responsive sidebar** with density, terrain mix, and elevation controls
 - **Map legend for printed output** with multiple display and print options
+- **Actual print stylesheet** with US Letter and A4 support
 
 
 ### Not Yet Implemented
-
-- [ ] Actual print stylesheet testing/refinement
 - [ ] SVG download/export
 - [ ] Shareable URL with seed parameter
 - [ ] Thematic background layer (future feature - procedural terrain illustration behind hex grid)
