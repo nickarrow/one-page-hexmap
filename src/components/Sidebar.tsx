@@ -26,6 +26,8 @@ interface SidebarProps {
   onDisplayChange: (display: DisplayConfig) => void;
   onRegenerate: () => void;
   onPrint: () => void;
+  onPrint4x: () => void;
+  onPrintLegend: () => void;
   onShowStats: () => void;
 }
 
@@ -37,17 +39,24 @@ export function Sidebar({
   onDisplayChange,
   onRegenerate,
   onPrint,
+  onPrint4x,
+  onPrintLegend,
   onShowStats,
 }: SidebarProps) {
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [printMenuOpen, setPrintMenuOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+  const printMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close export menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
         setExportMenuOpen(false);
+      }
+      if (printMenuRef.current && !printMenuRef.current.contains(event.target as Node)) {
+        setPrintMenuOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -290,7 +299,6 @@ export function Sidebar({
             <option value="none">None</option>
             <option value="overlay-right">On Map (right)</option>
             <option value="overlay-left">On Map (left)</option>
-            <option value="separate">Separate Page</option>
           </select>
         </div>
       </div>
@@ -317,12 +325,45 @@ export function Sidebar({
         </div>
 
         <div className="flex gap-2">
-          <button
-            onClick={onPrint}
-            className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded text-sm font-medium"
-          >
-            Print
-          </button>
+          <div className="relative flex-1" ref={printMenuRef}>
+            <button
+              onClick={() => setPrintMenuOpen(!printMenuOpen)}
+              className="w-full px-3 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded text-sm font-medium"
+            >
+              Print
+            </button>
+            {printMenuOpen && (
+              <div className="absolute bottom-full left-0 mb-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-[160px]">
+                <button
+                  onClick={() => {
+                    setPrintMenuOpen(false);
+                    onPrint();
+                  }}
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 whitespace-nowrap"
+                >
+                  Print (1 page)
+                </button>
+                <button
+                  onClick={() => {
+                    setPrintMenuOpen(false);
+                    onPrint4x();
+                  }}
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 border-t border-gray-100 whitespace-nowrap"
+                >
+                  Print (4 pages)
+                </button>
+                <button
+                  onClick={() => {
+                    setPrintMenuOpen(false);
+                    onPrintLegend();
+                  }}
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 border-t border-gray-100 whitespace-nowrap"
+                >
+                  Print legend
+                </button>
+              </div>
+            )}
+          </div>
           <div className="relative flex-1" ref={exportMenuRef}>
             <button
               onClick={() => setExportMenuOpen(!exportMenuOpen)}

@@ -47,6 +47,11 @@ body,
     display: block !important;
   }
 
+  /* Hide single-page view when printing 4x */
+  main > div.print-single-page-hidden {
+    display: none !important;
+  }
+
   main > div > div {
     width: 100% !important;
     height: 100% !important;
@@ -99,6 +104,40 @@ body,
 @page a4 {
   size: A4 landscape;
   margin: 0;
+}
+
+/* Print 4x page styles */
+.print-4x-page {
+  display: block;
+  width: 100%;
+  height: 100vh;
+}
+
+/* Print legend page styles */
+.print-legend-page {
+  display: block;
+  width: 100%;
+  height: 100vh;
+}
+
+.print-legend-page svg {
+  width: 100%;
+  height: 100%;
+}
+
+@media print {
+  .print-4x-page {
+    page-break-after: always;
+  }
+
+  .print-4x-page:last-child {
+    page-break-after: auto;
+  }
+
+  .print-4x-page svg {
+    width: 100%;
+    height: 100%;
+  }
 }
 
 /* Slider styling */

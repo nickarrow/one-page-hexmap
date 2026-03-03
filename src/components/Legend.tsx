@@ -330,6 +330,15 @@ export function LegendPage({ grid, seed }: { grid: HexGrid; seed: string }) {
   const useColumns = terrainTypes.length > 5;
   const itemsPerCol = useColumns ? Math.ceil(terrainTypes.length / 2) : terrainTypes.length;
 
+  // Calculate absolute positions for each terrain entry
+  const getEntryPosition = (i: number) => {
+    const col = useColumns ? Math.floor(i / itemsPerCol) : 0;
+    const row = useColumns ? i % itemsPerCol : i;
+    const x = col * colWidth + margin + 60;
+    const y = row * rowHeight + rowHeight / 2 + margin + 80;
+    return { x, y };
+  };
+
   return (
     <svg
       viewBox={`0 0 ${pageWidth} ${pageHeight}`}
@@ -337,15 +346,11 @@ export function LegendPage({ grid, seed }: { grid: HexGrid; seed: string }) {
       style={{ backgroundColor: 'white' }}
       preserveAspectRatio="xMidYMid meet"
     >
-      {/* ClipPath definitions for legend hex samples */}
+      {/* ClipPath definitions for legend hex samples - using local coordinates */}
       <defs>
-        {terrainTypes.map((terrain, i) => {
-          const col = useColumns ? Math.floor(i / itemsPerCol) : 0;
-          const row = useColumns ? i % itemsPerCol : i;
-          const x = col * colWidth + margin + 60;
-          const y = row * rowHeight + rowHeight / 2 + margin + 80;
-          const hexCx = x + hexSize / 2;
-          const points = legendHexPoints(hexCx, y, hexSize);
+        {terrainTypes.map((terrain) => {
+          const hexCx = hexSize / 2;
+          const points = legendHexPoints(hexCx, 0, hexSize);
           return (
             <clipPath key={`page-clip-${terrain}`} id={`page-clip-${terrain}`}>
               <polygon points={points} />
@@ -382,46 +387,41 @@ export function LegendPage({ grid, seed }: { grid: HexGrid; seed: string }) {
       </text>
 
       {/* Legend entries */}
-      <g transform={`translate(${margin + 60}, ${margin + 80})`}>
-        {terrainTypes.map((terrain, i) => {
-          const col = useColumns ? Math.floor(i / itemsPerCol) : 0;
-          const row = useColumns ? i % itemsPerCol : i;
-          const x = col * colWidth;
-          const y = row * rowHeight + rowHeight / 2;
-          const hexCx = hexSize / 2;
+      {terrainTypes.map((terrain, i) => {
+        const { x, y } = getEntryPosition(i);
+        const hexCx = hexSize / 2;
 
-          return (
-            <g key={terrain} transform={`translate(${x}, ${y})`}>
-              <HexSample
-                terrain={terrain}
-                cx={hexCx}
-                cy={0}
-                size={hexSize}
-                clipId={`page-clip-${terrain}`}
-              />
-              <text
-                x={hexCx + hexSize / 2 + 16}
-                y={-6}
-                fontSize="14"
-                fontWeight="600"
-                fontFamily="Arial, sans-serif"
-                fill="#333"
-              >
-                {getTerrainDisplayName(terrain)}
-              </text>
-              <text
-                x={hexCx + hexSize / 2 + 16}
-                y={10}
-                fontSize="11"
-                fontFamily="Arial, sans-serif"
-                fill="#666"
-              >
-                {getTerrainRuleText(terrain)}
-              </text>
-            </g>
-          );
-        })}
-      </g>
+        return (
+          <g key={terrain} transform={`translate(${x}, ${y})`}>
+            <HexSample
+              terrain={terrain}
+              cx={hexCx}
+              cy={0}
+              size={hexSize}
+              clipId={`page-clip-${terrain}`}
+            />
+            <text
+              x={hexCx + hexSize / 2 + 16}
+              y={-6}
+              fontSize="14"
+              fontWeight="600"
+              fontFamily="Arial, sans-serif"
+              fill="#333"
+            >
+              {getTerrainDisplayName(terrain)}
+            </text>
+            <text
+              x={hexCx + hexSize / 2 + 16}
+              y={10}
+              fontSize="11"
+              fontFamily="Arial, sans-serif"
+              fill="#666"
+            >
+              {getTerrainRuleText(terrain)}
+            </text>
+          </g>
+        );
+      })}
 
       {/* Elevation legend if any elevation exists */}
       <g
