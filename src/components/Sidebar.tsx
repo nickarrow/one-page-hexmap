@@ -3,7 +3,8 @@
  * Compact layout to fit without scrolling.
  */
 
-import type { GeneratorConfig, DisplayConfig, LegendMode } from '../lib/types';
+import { useState, useRef, useEffect } from 'react';
+import type { GeneratorConfig, DisplayConfig, LegendMode, HexGrid } from '../lib/types';
 import {
   DEFAULT_DENSITY,
   DEFAULT_TERRAIN_MIX,
@@ -15,10 +16,12 @@ import {
   ELEVATION_MAX,
 } from '../lib/constants';
 import { generateSeed } from '../lib/random';
+import { exportMap } from '../lib/export';
 
 interface SidebarProps {
   config: GeneratorConfig;
   display: DisplayConfig;
+  grid: HexGrid;
   onConfigChange: (config: GeneratorConfig) => void;
   onDisplayChange: (display: DisplayConfig) => void;
   onRegenerate: () => void;
@@ -29,12 +32,40 @@ interface SidebarProps {
 export function Sidebar({
   config,
   display,
+  grid,
   onConfigChange,
   onDisplayChange,
   onRegenerate,
   onPrint,
   onShowStats,
 }: SidebarProps) {
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setExportMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleExport = async (format: 'svg' | 'png') => {
+    setExporting(true);
+    setExportMenuOpen(false);
+    try {
+      await exportMap(grid, config.seed, display, format);
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const updateConfig = (updates: Partial<GeneratorConfig>) => {
     onConfigChange({ ...config, ...updates });
   };
@@ -73,13 +104,13 @@ export function Sidebar({
   return (
     <aside className="w-64 h-screen bg-gray-50 border-r border-gray-200 p-3 flex flex-col overflow-y-auto">
       {/* Header */}
-      <div className="mb-3">
+      <div className="mb-2">
         <h1 className="text-lg font-bold text-gray-800">OPR Hex Map</h1>
         <p className="text-xs text-gray-500">Battle Map Generator</p>
       </div>
 
       {/* Seed Control */}
-      <div className="mb-3">
+      <div className="mb-2">
         <label className="text-xs font-semibold text-gray-600 block mb-1">Seed</label>
         <div className="flex gap-1">
           <input
@@ -112,7 +143,7 @@ export function Sidebar({
       />
 
       {/* Terrain Mix - 2 column grid */}
-      <div className="mb-3">
+      <div className="mb-2">
         <label className="text-xs font-semibold text-gray-600 block mb-1">Terrain Mix</label>
         <div className="grid grid-cols-2 gap-x-2 gap-y-1">
           <MiniSlider
@@ -143,32 +174,27 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Piece Size */}
-      <CompactSlider
-        label="Piece Size"
-        value={config.pieceSize}
-        onChange={(v) => updateConfig({ pieceSize: v })}
-        min={0}
-        max={1}
-        step={0.1}
-        leftLabel="Small"
-        rightLabel="Large"
-      />
-
-      {/* Cluster Spacing */}
-      <CompactSlider
-        label="Cluster Spacing"
-        value={config.clusterSpacing}
-        onChange={(v) => updateConfig({ clusterSpacing: v })}
-        min={0}
-        max={1}
-        step={0.1}
-        leftLabel="Tight"
-        rightLabel="Spread"
-      />
+      {/* Piece Size & Cluster Spacing - 2 column grid */}
+      <div className="mb-2">
+        <label className="text-xs font-semibold text-gray-600 block mb-1">Piece Layout</label>
+        <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+          <MiniSlider
+            label="Size"
+            value={config.pieceSize}
+            onChange={(v) => updateConfig({ pieceSize: v })}
+            showPercent={false}
+          />
+          <MiniSlider
+            label="Spacing"
+            value={config.clusterSpacing}
+            onChange={(v) => updateConfig({ clusterSpacing: v })}
+            showPercent={false}
+          />
+        </div>
+      </div>
 
       {/* Generation Options */}
-      <div className="mb-3">
+      <div className="mb-2">
         <label className="text-xs font-semibold text-gray-600 block mb-1">Options</label>
         <div className="flex flex-col gap-1">
           <label className="flex items-center gap-2">
@@ -193,7 +219,7 @@ export function Sidebar({
       </div>
 
       {/* Elevation */}
-      <div className="mb-3">
+      <div className="mb-2">
         <div className="flex items-center justify-between mb-1">
           <label className="text-xs font-semibold text-gray-600">Elevation</label>
           <label className="flex items-center gap-1">
@@ -228,9 +254,9 @@ export function Sidebar({
       </div>
 
       {/* Display Options */}
-      <div className="mb-3">
+      <div className="mb-2">
         <label className="text-xs font-semibold text-gray-600 block mb-1">Display</label>
-        <div className="flex gap-4 mb-2">
+        <div className="flex gap-4 mb-1">
           <label className="flex items-center gap-1">
             <input
               type="checkbox"
@@ -252,7 +278,7 @@ export function Sidebar({
         </div>
 
         {/* Legend Mode */}
-        <div className="mt-2">
+        <div className="mt-1">
           <label className="text-[10px] text-gray-500 block mb-1">Legend</label>
           <select
             value={display.legendMode}
@@ -295,8 +321,33 @@ export function Sidebar({
             onClick={onPrint}
             className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded text-sm font-medium"
           >
-            Print / Save
+            Print
           </button>
+          <div className="relative flex-1" ref={exportMenuRef}>
+            <button
+              onClick={() => setExportMenuOpen(!exportMenuOpen)}
+              disabled={exporting}
+              className="w-full px-3 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50"
+            >
+              {exporting ? 'Exporting...' : 'Export'}
+            </button>
+            {exportMenuOpen && (
+              <div className="absolute bottom-full right-0 mb-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-[140px]">
+                <button
+                  onClick={() => handleExport('svg')}
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 whitespace-nowrap"
+                >
+                  Export as SVG
+                </button>
+                <button
+                  onClick={() => handleExport('png')}
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 border-t border-gray-100 whitespace-nowrap"
+                >
+                  Export as PNG
+                </button>
+              </div>
+            )}
+          </div>
           <button
             onClick={onShowStats}
             className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm"
@@ -330,7 +381,7 @@ function CompactSlider({
   rightLabel?: string;
 }) {
   return (
-    <div className="mb-3">
+    <div className="mb-2">
       <label className="text-xs font-semibold text-gray-600 block mb-1">{label}</label>
       <input
         type="range"

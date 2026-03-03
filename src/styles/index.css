@@ -89,7 +89,7 @@ body,
   }
 }
 
-/* Default page settings - US Letter landscape, no margins for browser headers */
+/* Default page settings - margins handled by SVG padding */
 @page {
   size: letter landscape;
   margin: 0;

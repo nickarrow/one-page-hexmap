@@ -71,6 +71,7 @@ export function App() {
         <Sidebar
           config={config}
           display={display}
+          grid={grid}
           onConfigChange={setConfig}
           onDisplayChange={setDisplay}
           onRegenerate={regenerate}

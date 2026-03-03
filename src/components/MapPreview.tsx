@@ -20,8 +20,9 @@ interface MapPreviewProps {
   display: DisplayConfig;
 }
 
-// Padding around the hex grid
-const PADDING = 8;
+// Padding around the hex grid - 19px ≈ 0.2in at 96 DPI
+// This ensures content is within printer safe zone even with "None" margins
+const PADDING = 19;
 
 // Total SVG dimensions including padding
 const SVG_WIDTH = GRID_WIDTH_PX + PADDING * 2;
@@ -119,10 +120,10 @@ export function MapPreview({ grid, seed, display }: MapPreviewProps) {
       {/* Optional border around the grid */}
       {display.showBorder && (
         <rect
-          x={2}
-          y={2}
-          width={SVG_WIDTH - 4}
-          height={SVG_HEIGHT - 4}
+          x={PADDING - 2}
+          y={PADDING - 2}
+          width={SVG_WIDTH - (PADDING - 2) * 2}
+          height={SVG_HEIGHT - (PADDING - 2) * 2}
           fill="none"
           stroke="#ccc"
           strokeWidth="1"
@@ -219,7 +220,7 @@ export function MapPreview({ grid, seed, display }: MapPreviewProps) {
 
       {/* Legend overlay - positioned on right or left side, vertically centered */}
       {display.legendMode === 'overlay-right' && (
-        <g transform={`translate(${SVG_WIDTH - HEX_WIDTH_PX * 2.4 - 2}, 0)`}>
+        <g transform={`translate(${SVG_WIDTH - HEX_WIDTH_PX * 2.6 - 2}, 0)`}>
           <LegendOverlay grid={grid} svgHeight={SVG_HEIGHT} />
         </g>
       )}

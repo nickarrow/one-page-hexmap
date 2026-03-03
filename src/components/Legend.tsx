@@ -179,8 +179,8 @@ export function LegendOverlay({ grid, svgHeight }: { grid: HexGrid; svgHeight: n
 
   if (terrainTypes.length === 0) return null;
 
-  // Use 2.4 hex widths to fit snugly within 3 hexes
-  const width = HEX_WIDTH_PX * 2.4;
+  // Use 2.6 hex widths to fit longer terrain names
+  const width = HEX_WIDTH_PX * 2.6;
 
   const hexSize = HEX_WIDTH_PX * 0.85; // Large enough to show patterns clearly
   const hexHeight = hexSize * HEX_HEIGHT_RATIO;
