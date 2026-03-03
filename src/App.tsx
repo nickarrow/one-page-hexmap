@@ -36,7 +36,7 @@ const initialConfig: GeneratorConfig = {
 const initialDisplay: DisplayConfig = {
   showBorder: true,
   showSeed: true,
-  legendMode: 'none',
+  legendMode: 'overlay-right',
 };
 
 export function App() {
