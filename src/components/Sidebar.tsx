@@ -9,10 +9,12 @@ import {
   DEFAULT_DENSITY,
   DEFAULT_TERRAIN_MIX,
   DEFAULT_ELEVATION,
-  DEFAULT_CLUSTER_SPACING,
+  DEFAULT_SPREAD,
   DEFAULT_SYMMETRY,
-  DEFAULT_STRICT_LOS,
   DEFAULT_PIECE_SIZE,
+  DEFAULT_LOS_STRICTNESS,
+  DEFAULT_EDGE_BUFFER,
+  DEFAULT_MIN_PASSAGE,
   ELEVATION_MAX,
 } from '../lib/constants';
 import { generateSeed } from '../lib/random';
@@ -103,9 +105,11 @@ export function Sidebar({
       density: DEFAULT_DENSITY,
       terrainMix: { ...DEFAULT_TERRAIN_MIX },
       pieceSize: DEFAULT_PIECE_SIZE,
-      clusterSpacing: DEFAULT_CLUSTER_SPACING,
+      spread: DEFAULT_SPREAD,
       symmetry: DEFAULT_SYMMETRY,
-      strictLOS: DEFAULT_STRICT_LOS,
+      losStrictness: DEFAULT_LOS_STRICTNESS,
+      edgeBuffer: DEFAULT_EDGE_BUFFER,
+      minPassage: DEFAULT_MIN_PASSAGE,
       elevation: { ...DEFAULT_ELEVATION },
     });
   };
@@ -159,31 +163,41 @@ export function Sidebar({
             label="Blocking"
             value={config.terrainMix.blocking}
             onChange={(v) => updateTerrainMix('blocking', v)}
+            showPercent={false}
+            showLowHigh={true}
           />
           <MiniSlider
             label="Impassable"
             value={config.terrainMix.impassable}
             onChange={(v) => updateTerrainMix('impassable', v)}
+            showPercent={false}
+            showLowHigh={true}
           />
           <MiniSlider
             label="Cover"
             value={config.terrainMix.cover}
             onChange={(v) => updateTerrainMix('cover', v)}
+            showPercent={false}
+            showLowHigh={true}
           />
           <MiniSlider
             label="Difficult"
             value={config.terrainMix.difficult}
             onChange={(v) => updateTerrainMix('difficult', v)}
+            showPercent={false}
+            showLowHigh={true}
           />
           <MiniSlider
             label="Dangerous"
             value={config.terrainMix.dangerous}
             onChange={(v) => updateTerrainMix('dangerous', v)}
+            showPercent={false}
+            showLowHigh={true}
           />
         </div>
       </div>
 
-      {/* Piece Size & Cluster Spacing - 2 column grid */}
+      {/* Piece Size & Spread - 2 column grid */}
       <div className="mb-2">
         <label className="text-xs font-semibold text-gray-600 block mb-1">Piece Layout</label>
         <div className="grid grid-cols-2 gap-x-2 gap-y-1">
@@ -192,11 +206,39 @@ export function Sidebar({
             value={config.pieceSize}
             onChange={(v) => updateConfig({ pieceSize: v })}
             showPercent={false}
+            leftHint="Small"
+            rightHint="Large"
           />
           <MiniSlider
-            label="Spacing"
-            value={config.clusterSpacing}
-            onChange={(v) => updateConfig({ clusterSpacing: v })}
+            label="Spread"
+            value={config.spread}
+            onChange={(v) => updateConfig({ spread: v })}
+            showPercent={false}
+            leftHint="Clustered"
+            rightHint="Scattered"
+          />
+        </div>
+      </div>
+
+      {/* LOS Blocking & Corridor Width - 2 column grid */}
+      <div className="mb-2">
+        <label className="text-xs font-semibold text-gray-600 block mb-1">LOS Blocking</label>
+        <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+          <MiniSlider
+            label="LOS Strictness"
+            value={config.losStrictness}
+            onChange={(v) => updateConfig({ losStrictness: v })}
+            showPercent={false}
+            leftHint="Lenient"
+            rightHint="Strict"
+          />
+          <MiniSlider
+            label={`Min Gap (${config.minPassage})`}
+            value={config.minPassage}
+            onChange={(v) => updateConfig({ minPassage: Math.round(v) })}
+            min={1}
+            max={6}
+            step={1}
             showPercent={false}
           />
         </div>
@@ -218,11 +260,11 @@ export function Sidebar({
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={config.strictLOS}
-              onChange={(e) => updateConfig({ strictLOS: e.target.checked })}
+              checked={config.edgeBuffer}
+              onChange={(e) => updateConfig({ edgeBuffer: e.target.checked })}
               className="rounded w-3 h-3"
             />
-            <span className="text-xs text-gray-600">Strict LOS blocking</span>
+            <span className="text-xs text-gray-600">Edge buffer</span>
           </label>
         </div>
       </div>
@@ -451,6 +493,9 @@ function MiniSlider({
   max = 1,
   step = 0.05,
   showPercent = true,
+  showLowHigh = false,
+  leftHint,
+  rightHint,
 }: {
   label: string;
   value: number;
@@ -459,8 +504,21 @@ function MiniSlider({
   max?: number;
   step?: number;
   showPercent?: boolean;
+  showLowHigh?: boolean;
+  leftHint?: string;
+  rightHint?: string;
 }) {
-  const displayValue = showPercent ? `${Math.round(value * 100)}%` : '';
+  let displayValue = '';
+  if (showLowHigh) {
+    // Map 0-1 to Off/Low/Med/High
+    const normalized = (value - min) / (max - min);
+    if (normalized <= 0.01) displayValue = 'Off';
+    else if (normalized < 0.35) displayValue = 'Low';
+    else if (normalized < 0.65) displayValue = 'Med';
+    else displayValue = 'High';
+  } else if (showPercent) {
+    displayValue = `${Math.round(value * 100)}%`;
+  }
 
   return (
     <div>
@@ -477,6 +535,12 @@ function MiniSlider({
         step={step}
         className="w-full h-1"
       />
+      {(leftHint || rightHint) && (
+        <div className="flex justify-between text-[9px] text-gray-400 -mt-0.5">
+          <span>{leftHint}</span>
+          <span>{rightHint}</span>
+        </div>
+      )}
     </div>
   );
 }

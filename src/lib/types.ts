@@ -159,12 +159,16 @@ export interface GeneratorConfig {
   };
   /** Piece size preference (0=small, 0.5=medium, 1=large) */
   pieceSize: number;
-  /** Cluster spacing (0=tight clusters, 1=spread out) */
-  clusterSpacing: number;
+  /** Terrain spread (0=clustered together, 1=scattered across map) */
+  spread: number;
   /** Mirror terrain for competitive balance */
   symmetry: boolean;
-  /** Strict LOS blocking (all 3 columns vs any 2) */
-  strictLOS: boolean;
+  /** LOS blocking strictness (0=lenient, 0.5=default, 1=strict) */
+  losStrictness: number;
+  /** Keep terrain away from map edges */
+  edgeBuffer: boolean;
+  /** Minimum passage width between blocking terrain (1-6 hexes) */
+  minPassage: number;
   /** Elevation settings */
   elevation: {
     enabled: boolean;
@@ -193,8 +197,10 @@ export interface MapStats {
   difficultPercent: number;
   /** Number of dangerous terrain hexes */
   dangerousCount: number;
-  /** Whether edge-to-edge LOS is blocked */
+  /** Whether edge-to-edge LOS is blocked (no wide-open corridors) */
   losBlocked: boolean;
+  /** Width of the widest open corridor (in columns) */
+  widestCorridor: number;
   /** Maximum gap between terrain pieces (in hexes) */
   maxGap: number;
   /** Minimum passage width between terrain (in hexes) */

@@ -3,7 +3,7 @@
  */
 
 import type { MapStats } from '../lib/types';
-import { getComplianceStatus } from '../lib/stats';
+import { getComplianceStatus, isOPRCompliant } from '../lib/stats';
 
 interface StatsModalProps {
   stats: MapStats;
@@ -12,6 +12,7 @@ interface StatsModalProps {
 
 export function StatsModal({ stats, onClose }: StatsModalProps) {
   const status = getComplianceStatus(stats);
+  const compliant = isOPRCompliant(stats);
 
   return (
     <div
@@ -32,19 +33,37 @@ export function StatsModal({ stats, onClose }: StatsModalProps) {
           </button>
         </div>
 
-        <p className="text-sm text-gray-500 mb-4">OPR terrain placement guideline compliance</p>
+        {/* Compliance Summary */}
+        <div
+          className={`mb-4 p-3 rounded-lg ${compliant ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}
+        >
+          <div className="flex items-center gap-2">
+            <span className={`text-lg ${compliant ? 'text-green-600' : 'text-yellow-600'}`}>
+              {compliant ? '✓' : '⚠'}
+            </span>
+            <span className={`font-medium ${compliant ? 'text-green-700' : 'text-yellow-700'}`}>
+              {compliant ? 'OPR Compliant' : 'Not Fully Compliant'}
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">Based on OPR terrain placement guidelines</p>
+        </div>
 
         <div className="space-y-3">
+          {/* Terrain Composition */}
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Terrain Composition
+          </div>
+
           <StatRow
             label="Coverage"
-            value={`${(stats.coverage * 100).toFixed(0)}%`}
+            value={`${(stats.coverage * 100).toFixed(1)}%`}
             target="≥25%"
             status={status.coverage}
           />
 
           <StatRow
-            label="Blocking LOS"
-            value={`${(stats.blockingPercent * 100).toFixed(0)}%`}
+            label="Blocking"
+            value={`${(stats.blockingPercent * 100).toFixed(1)}%`}
             target="≥50%"
             status={status.blocking}
           />
@@ -52,7 +71,7 @@ export function StatsModal({ stats, onClose }: StatsModalProps) {
           {stats.impassablePercent > 0 && (
             <StatRow
               label="Impassable"
-              value={`${(stats.impassablePercent * 100).toFixed(0)}%`}
+              value={`${(stats.impassablePercent * 100).toFixed(1)}%`}
               target="—"
               status={status.impassable}
             />
@@ -60,14 +79,14 @@ export function StatsModal({ stats, onClose }: StatsModalProps) {
 
           <StatRow
             label="Cover"
-            value={`${(stats.coverPercent * 100).toFixed(0)}%`}
+            value={`${(stats.coverPercent * 100).toFixed(1)}%`}
             target="≥33%"
             status={status.cover}
           />
 
           <StatRow
             label="Difficult"
-            value={`${(stats.difficultPercent * 100).toFixed(0)}%`}
+            value={`${(stats.difficultPercent * 100).toFixed(1)}%`}
             target="≥33%"
             status={status.difficult}
           />
@@ -79,12 +98,24 @@ export function StatsModal({ stats, onClose }: StatsModalProps) {
             status={status.dangerous}
           />
 
+          {/* LOS & Gaps */}
           <div className="border-t pt-3 mt-3">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+              Line of Sight & Gaps
+            </div>
+
             <StatRow
-              label="Edge-to-Edge LOS"
-              value={stats.losBlocked ? 'Blocked ✓' : 'Clear sightlines!'}
-              target="Blocked"
+              label="LOS Blocked"
+              value={stats.losBlocked ? 'Yes ✓' : 'No ✗'}
+              target="Yes"
               status={status.los}
+            />
+
+            <StatRow
+              label="Widest Corridor"
+              value={`${stats.widestCorridor} cols`}
+              target="<6"
+              status={stats.widestCorridor < 6 ? 'good' : 'bad'}
             />
 
             <StatRow
@@ -97,13 +128,16 @@ export function StatsModal({ stats, onClose }: StatsModalProps) {
             <StatRow
               label="Min Passage"
               value={`${stats.minPassage} hexes`}
-              target="≥6"
+              target="≥6 (rec)"
               status={status.minPassage}
             />
           </div>
 
+          {/* Balance */}
           <div className="border-t pt-3 mt-3">
-            <div className="text-xs font-semibold text-gray-600 mb-2">Balance (Top / Bottom)</div>
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+              Balance (Top / Bottom)
+            </div>
             <BalanceRow
               label="Terrain"
               top={stats.balance.topTerrain}

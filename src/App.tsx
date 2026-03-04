@@ -5,16 +5,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { GeneratorConfig, DisplayConfig, HexGrid } from './lib/types';
 import { generateMap } from './lib/generator';
-import { calculateMapStats } from './lib/stats';
+import { calculateMapStats, losStrictnessToCorridorWidth } from './lib/stats';
 import { generateSeed } from './lib/random';
 import {
   DEFAULT_DENSITY,
   DEFAULT_TERRAIN_MIX,
   DEFAULT_ELEVATION,
-  DEFAULT_CLUSTER_SPACING,
+  DEFAULT_SPREAD,
   DEFAULT_SYMMETRY,
-  DEFAULT_STRICT_LOS,
   DEFAULT_PIECE_SIZE,
+  DEFAULT_LOS_STRICTNESS,
+  DEFAULT_EDGE_BUFFER,
+  DEFAULT_MIN_PASSAGE,
 } from './lib/constants';
 import { Sidebar } from './components/Sidebar';
 import { MapPreview } from './components/MapPreview';
@@ -28,9 +30,11 @@ const initialConfig: GeneratorConfig = {
   density: DEFAULT_DENSITY,
   terrainMix: { ...DEFAULT_TERRAIN_MIX },
   pieceSize: DEFAULT_PIECE_SIZE,
-  clusterSpacing: DEFAULT_CLUSTER_SPACING,
+  spread: DEFAULT_SPREAD,
   symmetry: DEFAULT_SYMMETRY,
-  strictLOS: DEFAULT_STRICT_LOS,
+  losStrictness: DEFAULT_LOS_STRICTNESS,
+  edgeBuffer: DEFAULT_EDGE_BUFFER,
+  minPassage: DEFAULT_MIN_PASSAGE,
   elevation: { ...DEFAULT_ELEVATION },
 };
 
@@ -49,7 +53,8 @@ export function App() {
   const printTimeoutRef = useRef<number | null>(null);
 
   // Calculate stats whenever grid changes
-  const stats = calculateMapStats(grid);
+  const losCorridorWidth = losStrictnessToCorridorWidth(config.losStrictness);
+  const stats = calculateMapStats(grid, losCorridorWidth);
 
   // Regenerate map when config changes
   const regenerate = useCallback(() => {

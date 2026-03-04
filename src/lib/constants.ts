@@ -111,28 +111,24 @@ export const TARGET_DANGEROUS_CLUSTERS = 2;
 /** Maximum gap between terrain pieces (in hexes) */
 export const MAX_TERRAIN_GAP_HEXES = 12;
 
-/** Minimum passage width between terrain (in hexes) */
+/** Minimum passage width between terrain (in hexes) - recommendation for large units */
 export const MIN_PASSAGE_WIDTH_HEXES = 6;
 
-/**
- * Strategic rows for LOS blocking checks.
- * These divide the 24-row grid into quarters (rows 6, 12, 18).
- * Deployment is along top/bottom edges, so we block vertical sightlines.
- */
-export const STRATEGIC_LOS_ROWS = [6, 12, 18];
+/** Default minimum passage for blocking terrain (in hexes) */
+export const DEFAULT_MIN_PASSAGE = 3;
 
 // =============================================================================
 // TERRAIN PIECE SIZES (in hexes)
 // =============================================================================
 
-/** Small scatter terrain: 1-3 hexes */
-export const PIECE_SIZE_SMALL = { min: 1, max: 3 };
+/** Small scatter terrain: 6-12 hexes */
+export const PIECE_SIZE_SMALL = { min: 6, max: 12 };
 
-/** Medium terrain: 4-8 hexes */
-export const PIECE_SIZE_MEDIUM = { min: 4, max: 8 };
+/** Medium terrain: 12-20 hexes */
+export const PIECE_SIZE_MEDIUM = { min: 12, max: 20 };
 
-/** Large terrain: 8-12 hexes */
-export const PIECE_SIZE_LARGE = { min: 8, max: 12 };
+/** Large terrain: 20-30 hexes */
+export const PIECE_SIZE_LARGE = { min: 20, max: 30 };
 
 // =============================================================================
 // ELEVATION
@@ -187,17 +183,6 @@ export const ELEVATION_SCATTER_BASE = 0.02;
 export const ELEVATION_SCATTER_MULTIPLIER = 0.05;
 
 // =============================================================================
-// SPACING TUNING
-// =============================================================================
-
-/**
- * Piece count thresholds for reducing cluster spacing.
- * As more pieces are placed, spacing is reduced to ensure they fit.
- */
-export const SPACING_REDUCTION_THRESHOLD_HIGH = 15;
-export const SPACING_REDUCTION_THRESHOLD_LOW = 8;
-
-// =============================================================================
 // GENERATOR DEFAULTS
 // =============================================================================
 
@@ -206,21 +191,27 @@ export const DEFAULT_DENSITY = 0.5;
 
 /** Default terrain mix percentages */
 export const DEFAULT_TERRAIN_MIX = {
-  blocking: TARGET_BLOCKING_MIN,
+  blocking: 0.65, // Higher to help reach 50% blocking target
   impassable: 0, // Off by default
   cover: TARGET_COVER_MIN,
   difficult: TARGET_DIFFICULT_MIN,
   dangerous: 0.05, // Small amount by default
 };
 
-/** Default cluster spacing (0=tight, 1=spread) */
-export const DEFAULT_CLUSTER_SPACING = 0.5;
+/** Default spread setting (0=clustered, 1=scattered) */
+export const DEFAULT_SPREAD = 0.4;
 
 /** Default symmetry setting */
 export const DEFAULT_SYMMETRY = false;
 
-/** Default strict LOS setting */
-export const DEFAULT_STRICT_LOS = true;
+/** Default LOS strictness (0=lenient/8-wide, 0.5=default/6-wide, 1=strict/4-wide) */
+export const DEFAULT_LOS_STRICTNESS = 0.5;
+
+/** Default edge buffer setting (keep terrain away from map edges) */
+export const DEFAULT_EDGE_BUFFER = true;
+
+/** Edge buffer size in hexes */
+export const EDGE_BUFFER_SIZE = 2;
 
 /** Default elevation settings */
 export const DEFAULT_ELEVATION = {
@@ -231,6 +222,47 @@ export const DEFAULT_ELEVATION = {
 
 /** Default piece size (0=small, 0.5=medium, 1=large) */
 export const DEFAULT_PIECE_SIZE = 0.5;
+
+// =============================================================================
+// GENERATOR TUNING
+// =============================================================================
+
+/** Maximum nudge iterations to reach compliance */
+export const MAX_NUDGE_ITERATIONS = 25;
+
+/** Maximum coverage before terrain removal kicks in */
+export const MAX_COVERAGE_THRESHOLD = 0.3;
+
+/** Blocking percentage target (slightly above 50% to avoid edge cases) */
+export const BLOCKING_TARGET_LOW = 0.52;
+
+/** Blocking percentage above which conversion to cover/difficult is allowed */
+export const BLOCKING_TARGET_HIGH = 0.55;
+
+/** Protection threshold for cover/difficult terrain during removal */
+export const PROTECTION_THRESHOLD = 0.35;
+
+/** Minimum dangerous terrain count to protect during removal */
+export const MIN_DANGEROUS_PROTECT = 3;
+
+/** Base number of terrain pieces at density 0 */
+export const BASE_PIECES = 8;
+
+/** Additional pieces per density unit */
+export const PIECES_PER_DENSITY = 4;
+
+/** Nudge piece size range */
+export const NUDGE_PIECE_SIZE = { min: 6, max: 12 };
+
+/** Forced piece size for large terrain variety */
+export const FORCED_PIECE_SIZE = { min: 8, max: 14 };
+
+/** Piece size slider thresholds */
+export const PIECE_SIZE_THRESHOLD_SMALL = 0.33;
+export const PIECE_SIZE_THRESHOLD_LARGE = 0.66;
+
+/** Probability of scattered elevation being a rise vs depression */
+export const SCATTER_RISE_PROBABILITY = 0.7;
 
 // =============================================================================
 // UI
