@@ -27,7 +27,7 @@ export function calculateMapStats(grid: HexGrid, losCorridorWidth: number = 6): 
   let impassableCount = 0;
   let coverCount = 0;
   let difficultCount = 0;
-  let dangerousCount = 0;
+  const dangerousHexes: Array<{ col: number; row: number }> = [];
 
   // Balance tracking (top vs bottom half)
   const midRow = Math.floor(GRID_ROWS / 2);
@@ -63,9 +63,13 @@ export function calculateMapStats(grid: HexGrid, losCorridorWidth: number = 6): 
       if (props.impassable && !props.blocking) impassableCount++;
       if (props.cover) coverCount++;
       if (props.difficult) difficultCount++;
-      if (props.dangerous) dangerousCount++;
+      if (props.dangerous) dangerousHexes.push({ col, row });
     }
   }
+
+  // Count dangerous clusters (not hexes) - OPR rule is "2+ pieces" not "2+ hexes"
+  const dangerousClusters = findTerrainClusters(dangerousHexes);
+  const dangerousCount = dangerousClusters.length;
 
   // Calculate percentages
   const coverage = terrainCount / TOTAL_HEXES;

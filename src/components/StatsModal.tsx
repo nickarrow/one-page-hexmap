@@ -93,7 +93,7 @@ export function StatsModal({ stats, onClose }: StatsModalProps) {
 
           <StatRow
             label="Dangerous"
-            value={`${stats.dangerousCount} hexes`}
+            value={`${stats.dangerousCount} clusters`}
             target="≥2"
             status={status.dangerous}
           />

@@ -536,6 +536,7 @@ function nudgeFillGap(
  * Add blocking terrain to break up open corridors.
  * Finds the widest open corridor and places blocking terrain in it.
  * Respects minimum spacing between blocking terrain.
+ * A column is "clear" if it has no blocking terrain AND no elevation >= 1 (matching stats.ts).
  */
 function nudgeLOSBlocking(
   grid: HexGrid,
@@ -547,6 +548,7 @@ function nudgeLOSBlocking(
   const blockingPositions = getBlockingPositions(grid);
 
   // Find where the widest corridor is
+  // A column is "clear" if no blocking terrain AND no elevation (matching checkLOSCorridor in stats.ts)
   let corridorStart = -1;
   let currentRun = 0;
   let maxRun = 0;
@@ -555,7 +557,9 @@ function nudgeLOSBlocking(
   for (let col = 0; col < GRID_COLUMNS; col++) {
     let isClear = true;
     for (let row = 0; row < GRID_ROWS; row++) {
-      if (grid[col][row].terrain === 'blocking') {
+      const hex = grid[col][row];
+      // Match stats.ts checkLOSCorridor: blocking terrain OR elevation blocks LOS
+      if (hex.terrain === 'blocking' || hex.elevation >= 1) {
         isClear = false;
         break;
       }

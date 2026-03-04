@@ -195,7 +195,7 @@ export interface MapStats {
   coverPercent: number;
   /** Percentage of terrain hexes that are difficult */
   difficultPercent: number;
-  /** Number of dangerous terrain hexes */
+  /** Number of dangerous terrain clusters */
   dangerousCount: number;
   /** Whether edge-to-edge LOS is blocked (no wide-open corridors) */
   losBlocked: boolean;
