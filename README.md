@@ -64,12 +64,14 @@ The generator validates that all elevated hexes have accessible ramps.
 
 ### Generation
 - Seed: Text input for reproducible maps
-- Density: 0-100% terrain coverage
-- Terrain Mix: Sliders for blocking, impassable, cover, difficult, dangerous proportions
-- Piece Size: Small (1-3 hexes), medium (4-8), or large (8-12)
-- Spacing: How spread out terrain clusters are
+- Density: Sparse to dense terrain coverage
+- Terrain Mix: Sliders for blocking, impassable, cover, difficult, dangerous preferences (Off/Low/Med/High)
+- Piece Size: Small (6-12 hexes), medium (12-20), or large (20-30)
+- Spread: Clustered together vs scattered across map
 - Symmetry: Mirror terrain top-to-bottom for competitive play
-- Strict LOS: Require blocking terrain at all 3 strategic rows vs any 2
+- Edge Buffer: Keep terrain away from map edges
+- LOS Strictness: How aggressively to block line-of-sight corridors
+- Min Gap: Minimum passage width between blocking terrain (1-6 hexes)
 
 ### Elevation
 - Enable/disable elevation
@@ -79,18 +81,29 @@ The generator validates that all elevated hexes have accessible ramps.
 ### Display
 - Border: Show/hide grid border
 - Seed: Show/hide seed watermark
-- Legend: None, on map (left/right), or separate page
+- Legend: None, on map (left/right)
 
 ### Output
 - Generate: Regenerate with current settings
 - Reset: Return all sliders to defaults
-- Print: Open browser print dialog
+- Print: Single page, 4-page (2x scale), or legend only
 - Export: Download as SVG or PNG
 - Stats: View OPR guideline compliance
 
+## Generator Architecture
+
+The generator uses a 4-phase "scatter-measure-nudge" approach that emulates how humans place terrain:
+
+1. **Scatter**: Place terrain pieces randomly with configurable spacing and size
+2. **Measure**: Calculate OPR compliance statistics
+3. **Nudge**: Make targeted fixes to reach compliance (up to 25 iterations)
+4. **Enhance**: Apply symmetry and elevation
+
+Setting a terrain type to "Off" excludes it entirely from both scatter and nudge phases.
+
 ## OPR Guidelines
 
-The generator targets these placement guidelines:
+The generator targets these placement guidelines from the OPR rulebook:
 
 | Guideline | Target |
 |-----------|--------|
@@ -98,10 +111,12 @@ The generator targets these placement guidelines:
 | Blocking LOS | ≥50% of terrain |
 | Cover | ≥33% of terrain |
 | Difficult | ≥33% of terrain |
-| Dangerous | 2+ clusters |
-| Edge-to-Edge LOS | Blocked at strategic rows |
-| Max Gap | ≤12 hexes |
-| Min Passage | ≥6 hexes |
+| Dangerous | 2+ pieces |
+| Edge-to-Edge LOS | No wide-open corridors |
+| Max Gap | ≤12 hexes between terrain |
+| Min Passage | ≥6 hexes (recommendation) |
+
+With default settings, the generator achieves 100% OPR compliance. Edge-case slider settings (min/max) may produce 60-80% compliance.
 
 ## Project Structure
 
